@@ -181,16 +181,21 @@ loop
 		BNE loop
 		
 
-gameover
-		BL MOTEUR_GAUCHE_OFF
-		BL MOTEUR_DROIT_OFF
+
+
 		
+			
 ;; Boucle d'attante		
 WAIT	ldr r1, =0xAFFFFF
 		
 		
 wait1	subs r1, #1
-        bne wait1
+		ldr r10,[r8]
+		CMP r10,#0x00
+        BNE wait1
+		BL MOTEUR_GAUCHE_OFF
+		BL MOTEUR_DROIT_OFF	
+		
 		
 		;; retour à la suite du lien de branchement
 		BX	LR
