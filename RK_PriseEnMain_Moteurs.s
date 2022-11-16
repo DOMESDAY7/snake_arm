@@ -58,7 +58,9 @@ BROCHE6				EQU 	0x40		; bouton poussoir 1
 
 BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
 
-BROCHE0_1			EQU		0x03
+BUMPERD			EQU		0x01
+BUMPERG			EQU		0x02
+BUMPER2			EQU		0x03
 
 ; blinking frequency
 DUREE   			EQU     0x002FFFFF
@@ -124,19 +126,47 @@ __main
 		
 			
 		
-				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper 1
+				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper Droit
+		
+		ldr r12, = GPIO_PORTE_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ldr r4, = BUMPERD
+        str r4, [r12]  
+
+		ldr r12, = GPIO_PORTE_BASE+GPIO_I_PUR	;; Pull_up
+        ldr r4, = BUMPERD	
+        str r4, [r12]
+
+		ldr r12, = GPIO_PORTE_BASE + (BUMPERD<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
+		
+		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Bumper Droit 
+		
+				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper Gauche 
+		
+		ldr r11, = GPIO_PORTE_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ldr r4, = BUMPERG
+        str r4, [r11]  
+
+		ldr r11, = GPIO_PORTE_BASE+GPIO_I_PUR	;; Pull_up
+        ldr r4, = BUMPERG
+        str r4, [r11]
+
+		ldr r11, = GPIO_PORTE_BASE + (BUMPERG<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
+		
+		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Bumper Gauche 
+		
+				;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper LES DEUX 
 		
 		ldr r8, = GPIO_PORTE_BASE+GPIO_O_DEN	;; Enable Digital Function 
-        ldr r4, = BROCHE0_1	
+        ldr r4, = BUMPER2
         str r4, [r8]  
 
 		ldr r8, = GPIO_PORTE_BASE+GPIO_I_PUR	;; Pull_up
-        ldr r4, = BROCHE0_1		
+        ldr r4, = BUMPER2	
         str r4, [r8]
 
-		ldr r8, = GPIO_PORTE_BASE + (BROCHE0_1<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
+		ldr r8, = GPIO_PORTE_BASE + (BUMPER2<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
 		
-		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Switcher 
+		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Bumper LES DEUX  
 		
 		
 			
@@ -181,16 +211,29 @@ loop
 		BNE loop
 		
 
+<<<<<<< Updated upstream
+
+
+		
+			
+;; Boucle d'attante		
+=======
 gameover
 		BL MOTEUR_GAUCHE_OFF
 		BL MOTEUR_DROIT_OFF
+		;; Boucle d'attante
 		
-;; Boucle d'attante		
+>>>>>>> Stashed changes
 WAIT	ldr r1, =0xAFFFFF
 		
 		
 wait1	subs r1, #1
-        bne wait1
+		ldr r10,[r8]
+		CMP r10,#0x00
+        BNE wait1
+		BL MOTEUR_GAUCHE_OFF
+		BL MOTEUR_DROIT_OFF	
+		
 		
 		;; retour à la suite du lien de branchement
 		BX	LR
