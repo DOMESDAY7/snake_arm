@@ -1,0 +1,58 @@
+/*  conversion.S
+
+    MI01 - TP Assembleur 1
+
+    Affiche une chaîne de caractères terminée par un caractère NUL à l'écran. */
+.file "conversion.S"
+.intel_syntax noprefix
+
+/* Section de données */
+.data
+
+nombre:         .quad   0x9aa5976dbe
+chaine:         .fill   1 /* Remplacer ?? par la longueur n de la chaîne     */
+conversion: .ascii
+
+/* Section de code */
+.text
+
+/*  Le symbole _start est le point d'entrée du programme, il repère l'adresse de
+    la toute première instruction exécutée. Il est défini comme global sans quoi
+    l'éditeur de liens ne pourra pas le trouver. */
+.global _start
+_start:
+        mov rax, nombre[rip] /*on met le nombre à diviser dans r12, lea     r12, conversion[rip]*/
+        mov     r13, 0 /*Le 0 qu'on ajoute*/
+lea r12, chaine[rip]
+
+        mov     rdi, 1              /* fd = 1 (stdout)                        */
+        mov     rdx, 1             /* 1 seul caractère                       */
+
+suivant:
+xor rdx,rdx
+mov rbx,10
+idiv rbx
+add rdx, 0x30
+lea     rsi, [r12+r13]
+        mov [rsi], rdx
+
+        add     r13, 1
+        cmp     rax, 0
+        jne suivant
+        mov r13,0
+
+ecriture:
+lea     rsi, [r12+r13]      /* Adresse du caractère                   */
+        mov     rax, 1              /* Appel no 1 (write)                     */
+        syscall                     /* Appel système                          */
+
+        add     r13, 1             /* Passer au caractère suivant            */
+        cmp     r13, 0    /* Toute la longueur ?                    */
+        jne      ecriture             /* Si non, passer au suivant              */
+
+        /* Terminer le processus.
+           On utilise l'appel système exit(retval) pour mettre fin à un
+           processus. Cet appel est le nunméro 60.                            */
+        mov     rdi, 0              /* Valeur de retour (ici 0)               */
+        mov     rax, 60             /* Appel  60 (exit)                       */
+        syscall
