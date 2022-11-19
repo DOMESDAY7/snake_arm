@@ -392,6 +392,11 @@
               <FileType>2</FileType>
               <FilePath>.\RK_PriseEnMain_Moteurs.s</FilePath>
             </File>
+            <File>
+              <FileName>ledcli.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\ledcli.s</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -1,0 +1,1596 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         
+    2 00000000         
+    3 00000000         
+    4 00000000         
+    5 00000000         
+    6 00000000 400FE000 
+                       SYSCTL  equ              0x400FE000  ; System Control ba
+                                                            se address
+    7 00000000 400FE108 
+                       SYSCTL_RCGC2
+                               equ              0x400FE108  ; Run Mode Clock Ga
+                                                            ting Control Regist
+                                                            er 2   p292
+    8 00000000         ; pour enable clock des GPIOs
+    9 00000000 00000104 
+                       RCGC1   equ              0x104
+   10 00000000 00000108 
+                       RCGC2   equ              0x108
+   11 00000000         
+   12 00000000 00000044 
+                       SRCR1   equ              0x44        ; Software Reset Co
+                                                            ntrol 1 p303
+   13 00000000 00000044 
+                       SRCR2   equ              0x44        ; Software Reset Co
+                                                            ntrol 2 p306
+   14 00000000         
+   15 00000000         
+   16 00000000 400FE108 
+                       SYSCTL_PERIPH
+                               EQU              0x400FE108  ; SYSCTL_RCGC2_R : 
+                                                            pour enable clock (
+                                                            p291 datasheet de l
+                                                            m3s9b92.pdf)
+   17 00000000         ; voir chap.8 "GPIO": page 416 de lm3s9B92.pdf
+   18 00000000         
+   19 00000000         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;;;;;;;;;;;;;;;;;;
+   20 00000000         ; GPIO Register MAP page 413-414 du lm3s9b92.pdf
+   21 00000000         ; les adresses :
+   22 00000000         ;
+   23 00000000 40004000 
+                       GPIO_PORTA_BASE
+                               EQU              0x40004000
+   24 00000000 40005000 
+                       GPIO_PORTB_BASE
+                               EQU              0x40005000
+   25 00000000 40006000 
+                       GPIO_PORTC_BASE
+                               EQU              0x40006000
+   26 00000000 40007000 
+                       GPIO_PORTD_BASE
+                               EQU              0x40007000  ; GPIO Port D (APB)
+                                                             base: 0x4000.7000 
+                                                            (p416 datasheet de 
+                                                            lm3s9B92.pdf)
+   27 00000000 40024000 
+                       GPIO_PORTE_BASE
+                               EQU              0x40024000
+   28 00000000 40025000 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                       GPIO_PORTF_BASE
+                               EQU              0x40025000  ; GPIO Port F (APB)
+                                                             base: 0x4002.5000 
+                                                            (p416 datasheet de 
+                                                            lm3s9B92.pdf)
+   29 00000000 40026000 
+                       GPIO_PORTG_BASE
+                               EQU              0x40026000
+   30 00000000 40027000 
+                       GPIO_PORTH_BASE
+                               EQU              0x40027000
+   31 00000000 4003D000 
+                       GPIO_PORTJ_BASE
+                               EQU              0x4003D000  ; GPIO Port J (APB)
+                                                             base: 0x4003.D000
+   32 00000000         
+   33 00000000 00000000 
+                       GPIODATA
+                               equ              0x000       ; GPIO Data       p
+                                                            416
+   34 00000000 00000400 
+                       GPIODIR equ              0x400       ; GPIO Direction  p
+                                                            417 
+   35 00000000         
+   36 00000000 00000404 
+                       GPIOIS  equ              0x404       ; GPIO Interrupt Se
+                                                            nse        p418
+   37 00000000 00000408 
+                       GPIOIBE equ              0x408       ; GPIO Interrupt Bo
+                                                            th Edges   p419
+   38 00000000 0000040C 
+                       GPIOIEV equ              0x40C       ; GPIO Interrupt Ev
+                                                            ent        p420
+   39 00000000         
+   40 00000000 00000410 
+                       GPIOIM  equ              0x410       ; R/W 0x0000.0000 G
+                                                            PIO Interrupt Mask 
+                                                                      p421
+   41 00000000 00000414 
+                       GPIORIS equ              0x414       ; RO  0x0000.0000 G
+                                                            PIO Raw Interrupt S
+                                                            tatus     p422
+   42 00000000 00000418 
+                       GPIOMIS equ              0x418       ; RO  0x0000.0000 G
+                                                            PIO Masked Interrup
+                                                            t Status  p423
+   43 00000000 0000041C 
+                       GPIOICR equ              0x41C       ; W1C 0x0000.0000 G
+                                                            PIO Interrupt Clear
+                                                                      p425
+   44 00000000         
+   45 00000000 00000420 
+                       GPIOAFSEL
+                               equ              0x420       ; R/W - GPIO Altern
+                                                            ate Function Select
+                                                                      p426
+   46 00000000         
+   47 00000000 00000500 
+                       GPIODR2R
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                               equ              0x500       ; R/W 0x0000.00FF G
+                                                            PIO 2-mA Drive Sele
+                                                            ct        p428
+   48 00000000 00000504 
+                       GPIODR4R
+                               equ              0x504       ; R/W 0x0000.0000 G
+                                                            PIO 4-mA Drive Sele
+                                                            ct        p429
+   49 00000000 00000508 
+                       GPIODR8R
+                               equ              0x508       ; R/W 0x0000.0000 G
+                                                            PIO 8-mA Drive Sele
+                                                            ct        p430
+   50 00000000         
+   51 00000000 0000050C 
+                       GPIOODR equ              0x50C       ; R/W 0x0000.0000 G
+                                                            PIO Open Drain Sele
+                                                            ct        p431
+   52 00000000 00000510 
+                       GPIOPUR equ              0x510       ; R/W - GPIO Pull-U
+                                                            p Select           
+                                                                      p432
+   53 00000000 00000514 
+                       GPIOPDR equ              0x514       ; R/W 0x0000.0000 G
+                                                            PIO Pull-Down Selec
+                                                            t         p434
+   54 00000000 00000518 
+                       GPIOSLR equ              0x518       ; R/W 0x0000.0000 G
+                                                            PIO Slew Rate Contr
+                                                            ol Select p436
+   55 00000000         
+   56 00000000 0000051C 
+                       GPIODEN equ              0x51C       ; R/W - GPIO Digita
+                                                            l Enable           
+                                                                      p437
+   57 00000000         
+   58 00000000 00000520 
+                       GPIOLOCK
+                               equ              0x520       ; R/W 0x0000.0001 G
+                                                            PIO Lock           
+                                                                      p439
+   59 00000000 00000524 
+                       GPIOCR  equ              0x524       ; - - GPIO Commit  
+                                                                               
+                                                                      p440
+   60 00000000 00000528 
+                       GPIOAMSEL
+                               equ              0x528       ; R/W 0x0000.0000 G
+                                                            PIO Analog Mode Sel
+                                                            ect       p442
+   61 00000000 0000052C 
+                       GPIOPCTL
+                               equ              0x52C       ; R/W - GPIO Port C
+                                                            ontrol             
+                                                                      p444
+   62 00000000         
+   63 00000000 00000FD0 
+                       GPIOPeriphID4
+                               equ              0xFD0       ; RO 0x0000.0000 GP
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                                                            IO Peripheral Ident
+                                                            ification 4 p446
+   64 00000000 00000FD4 
+                       GPIOPeriphID5
+                               equ              0xFD4       ; RO 0x0000.0000 GP
+                                                            IO Peripheral Ident
+                                                            ification 5 p447
+   65 00000000 00000FD8 
+                       GPIOPeriphID6
+                               equ              0xFD8       ; RO 0x0000.0000 GP
+                                                            IO Peripheral Ident
+                                                            ification 6 p448
+   66 00000000 00000FDC 
+                       GPIOPeriphID7
+                               equ              0xFDC       ; RO 0x0000.0000 GP
+                                                            IO Peripheral Ident
+                                                            ification 7 p449
+   67 00000000 00000FE0 
+                       GPIOPeriphID0
+                               equ              0xFE0       ; RO 0x0000.0061 GP
+                                                            IO Peripheral Ident
+                                                            ification 0 p450
+   68 00000000 00000FE4 
+                       GPIOPeriphID1
+                               equ              0xFE4       ; RO 0x0000.0000 GP
+                                                            IO Peripheral Ident
+                                                            ification 1 p451
+   69 00000000 00000FE8 
+                       GPIOPeriphID2
+                               equ              0xFE8       ; RO 0x0000.0018 GP
+                                                            IO Peripheral Ident
+                                                            ification 2 p452
+   70 00000000 00000FEC 
+                       GPIOPeriphID3
+                               equ              0xFEC       ; RO 0x0000.0001 GP
+                                                            IO Peripheral Ident
+                                                            ification 3 p453
+   71 00000000         
+   72 00000000 00000FF0 
+                       GPIOPCellID0
+                               equ              0xFF0       ; RO 0x0000.000D GP
+                                                            IO PrimeCell Identi
+                                                            fication 0 p454
+   73 00000000 00000FF4 
+                       GPIOPCellID1
+                               equ              0xFF4       ; RO 0x0000.00F0 GP
+                                                            IO PrimeCell Identi
+                                                            fication 1 p455
+   74 00000000 00000FF8 
+                       GPIOPCellID2
+                               equ              0xFF8       ; RO 0x0000.0005 GP
+                                                            IO PrimeCell Identi
+                                                            fication 2 p456
+   75 00000000 00000FFC 
+                       GPIOPCellID3
+                               equ              0xFFC       ; RO 0x0000.00B1 GP
+                                                            IO PrimeCell Identi
+                                                            fication 3 p457
+   76 00000000         
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+   77 00000000 00000001 
+                       PORT0   EQU              0x01        ;  
+   78 00000000 00000002 
+                       PORT1   EQU              0x02        ;
+   79 00000000 00000004 
+                       PORT2   EQU              0x04        ;
+   80 00000000 00000008 
+                       PORT3   EQU              0x08        ;
+   81 00000000 00000010 
+                       PORT4   EQU              0x10        ;
+   82 00000000 00000020 
+                       PORT5   EQU              0x20        ;
+   83 00000000 00000040 
+                       PORT6   EQU              0x40        ;
+   84 00000000 00000080 
+                       PORT7   EQU              0x80        ;
+   85 00000000         
+   86 00000000         
+   87 00000000         
+   88 00000000         
+   89 00000000         
+   90 00000000         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;
+   91 00000000         ; les constantes de durée 
+   92 00000000         ; calculés apres mesure sur l'oscillo
+   93 00000000         ;
+   94 00000000 002FFFFF 
+                       D1s     equ              0x002FFFFF  ; en réalité 1.2s 
+   95 00000000 000067E8 
+                       D5ms    equ              26600
+   96 00000000 00002990 
+                       D2ms    equ              10640
+   97 00000000 00009C40 
+                       D150us  equ              (800*50)
+   98 00000000 00004E20 
+                       D75us   equ              (400*50)
+   99 00000000 000067E8 
+                       D50us   equ              (266*100)
+  100 00000000 00001F40 
+                       D15us   equ              (80*100)
+  101 00000000 000014B4 
+                       D10us   equ              (53*100)
+  102 00000000 0000012C 
+                       D500ns  equ              (3*100)     ; en réalité 563ns
+  103 00000000         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;;;;;;;;;;;;;;;;;;
+  104 00000000         ; NVIC Register MAP pages 136-149 du lm3s9b92.pdf
+  105 00000000         ;
+  106 00000000         
+  107 00000000 E000E000 
+                       NVIC_BASE
+                               equ              0xe000e000  ; adresse de base d
+                                                            u NVIC
+  108 00000000         
+  109 00000000 00000100 
+                       EN0     equ              0x100       ; Interrupt 0-31 Se
+                                                            t Enable   p137
+  110 00000000 00000104 
+                       EN1     equ              0x104       ; Interrupt 32-54 S
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+                                                            et Enable  p138
+  111 00000000         
+  112 00000000 00000180 
+                       DIS0    equ              0x180       ; Interrupt 0-31 Cl
+                                                            ear Enable   p139
+  113 00000000 00000184 
+                       DIS1    equ              0x184       ; Interrupt 32-54 C
+                                                            lear Enable  p140
+  114 00000000         
+  115 00000000 00000200 
+                       PEND0   equ              0x200       ; Interrupt 0-31 Se
+                                                            t Pending   p141
+  116 00000000 00000204 
+                       PEND1   equ              0x204       ; Interrupt 32-54 S
+                                                            et Pending  p142
+  117 00000000         
+  118 00000000 00000280 
+                       UNPEND0 equ              0x280       ; Interrupt 0-31 Cl
+                                                            ear Pending   p143
+  119 00000000 00000284 
+                       UNPEND1 equ              0x284       ; Interrupt 32-54 C
+                                                            lear Pending  p144
+  120 00000000         
+  121 00000000 00000300 
+                       ACTIV0  equ              0x300       ; Interrupt 0-31 Ac
+                                                            tive Bit   p145
+  122 00000000 00000304 
+                       ACTIV1  equ              0x304       ; Interrupt 32-54 A
+                                                            ctive Bit  p146
+  123 00000000         
+  124 00000000 00000400 
+                       PRI0    equ              0x400       ; Interrupt 0-3 Pri
+                                                            ority  p147
+  125 00000000 00000404 
+                       PRI1    equ              0x404       ; Interrupt 4-7 Pri
+                                                            ority  p147
+  126 00000000 00000408 
+                       PRI2    equ              0x408       ; ...
+  127 00000000 0000040C 
+                       PRI3    equ              0x40C
+  128 00000000 00000410 
+                       PRI4    equ              0x410
+  129 00000000 00000414 
+                       PRI5    equ              0x414
+  130 00000000 00000418 
+                       PRI6    equ              0x418
+  131 00000000 0000041C 
+                       PRI7    equ              0x41C
+  132 00000000 00000420 
+                       PRI8    equ              0x420
+  133 00000000 00000424 
+                       PRI9    equ              0x424
+  134 00000000 00000428 
+                       PRI10   equ              0x428
+  135 00000000 0000042C 
+                       PRI11   equ              0x42C
+  136 00000000 00000430 
+                       PRI12   equ              0x430
+  137 00000000 00000434 
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+                       PRI13   equ              0x434
+  138 00000000         
+  139 00000000 00000F00 
+                       SWTRIG  equ              0xf00       ; Software Trigger 
+                                                            Interrupt  p149
+  140 00000000         
+  141 00000000 00000008 
+                       SCB     equ              0x008       ; Auxiliary Control
+                                                             p150
+  142 00000000 00000D04 
+                       INCTRL  equ              0xD04       ; Interrupt Control
+                                                             and State  p153
+  143 00000000         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;;;;;;;;;;;;;;;;;;;
+  144 00000000         ; Timers register MAP p546 du lm3s9b92.pdf
+  145 00000000         ;
+  146 00000000 40030000 
+                       TIMER0  equ              0x40030000
+  147 00000000 40031000 
+                       TIMER1  equ              0x40031000
+  148 00000000 40032000 
+                       TIMER2  equ              0x40032000
+  149 00000000 40033000 
+                       TIMER3  equ              0x40033000
+  150 00000000         
+  151 00000000 00000000 
+                       GPTMCFG equ              0x000       ; R/W 0x0000.0000 G
+                                                            PTM Configuration  
+                                                                      p548
+  152 00000000         
+  153 00000000 00000004 
+                       GPTMTAMR
+                               equ              0x004       ; R/W 0x0000.0000 G
+                                                            PTM Timer A Mode   
+                                                                      p549
+  154 00000000 00000008 
+                       GPTMTBMR
+                               equ              0x008       ; R/W 0x0000.0000 G
+                                                            PTM Timer B Mode   
+                                                                      p551
+  155 00000000         
+  156 00000000 0000000C 
+                       GPTMCTL equ              0x00C       ; R/W 0x0000.0000 G
+                                                            PTM Control        
+                                                                      p553
+  157 00000000 00000018 
+                       GPTMIMR equ              0x018       ; R/W 0x0000.0000 G
+                                                            PTM Interrupt Mask 
+                                                                      p556
+  158 00000000 0000001C 
+                       GPTMRIS equ              0x01C       ; RO  0x0000.0000 G
+                                                            PTM Raw Interrupt S
+                                                            tatus     p558
+  159 00000000 00000020 
+                       GPTMMIS equ              0x020       ; RO  0x0000.0000 G
+                                                            PTM Masked Interrup
+                                                            t Status  p561
+  160 00000000 00000024 
+                       GPTMICR equ              0x024       ; W1C 0x0000.0000 G
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+                                                            PTM Interrupt Clear
+                                                                      p564
+  161 00000000         
+  162 00000000 00000028 
+                       GPTMTAILR
+                               equ              0x028       ; R/W 0xFFFF.FFFF G
+                                                            PTM Timer A Interva
+                                                            l Load    p566
+  163 00000000 0000002C 
+                       GPTMTBILR
+                               equ              0x02C       ; R/W 0x0000.FFFF G
+                                                            PTM Timer B Interva
+                                                            l Load    p567
+  164 00000000         
+  165 00000000 00000030 
+                       GPTMTAMATCHR
+                               equ              0x030       ; R/W 0xFFFF.FFFF G
+                                                            PTM Timer A Match  
+                                                                      p568
+  166 00000000 00000034 
+                       GPTMTBMATCHR
+                               equ              0x034       ; R/W 0x0000.FFFF G
+                                                            PTM Timer B Match  
+                                                                      p569
+  167 00000000         
+  168 00000000 00000038 
+                       GPTMTAPR
+                               equ              0x038       ; R/W 0x0000.0000 G
+                                                            PTM Timer A Prescal
+                                                            e         p570
+  169 00000000 0000003C 
+                       GPTMTBPR
+                               equ              0x03C       ; R/W 0x0000.0000 G
+                                                            PTM Timer B Prescal
+                                                            e         p571
+  170 00000000         
+  171 00000000 00000040 
+                       GPTMTAPMR
+                               equ              0x040       ; R/W 0x0000.0000 G
+                                                            PTM TimerA Prescale
+                                                             Match    p572
+  172 00000000 00000044 
+                       GPTMTBPMR
+                               equ              0x044       ; R/W 0x0000.0000 G
+                                                            PTM TimerB Prescale
+                                                             Match    p573
+  173 00000000         
+  174 00000000 00000048 
+                       GPTMTAR equ              0x048       ; RO 0xFFFF.FFFF GP
+                                                            TM Timer A         
+                                                                      p574
+  175 00000000 0000004C 
+                       GPTMTBR equ              0x04C       ; RO 0x0000.FFFF GP
+                                                            TM Timer B         
+                                                                      p575
+  176 00000000         
+  177 00000000 00000050 
+                       GPTMTAV equ              0x050       ; RW 0xFFFF.FFFF GP
+                                                            TM Timer A Value   
+
+
+
+ARM Macro Assembler    Page 9 
+
+
+                                                                      p576
+  178 00000000 00000054 
+                       GPTMTBV equ              0x054       ; RW 0x0000.FFFF GP
+                                                            TM Timer B Value   
+                                                                      p577
+  179 00000000         
+  180 00000000                 end
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --depend=.\ob
+jects\generale.d -o.\objects\generale.o -I.\RTE\_Target_1 -I"C:\Users\TOP SECRE
+T\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include" -I"C:\Users\TOP S
+ECRET\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\Device\ARM\ARMCM3\Include" --pred
+efine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VE
+RSION SETA 528" --predefine="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --list=.
+\listings\generale.lst generale.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+ACTIV0 00000300
+
+Symbol: ACTIV0
+   Definitions
+      At line 121 in file generale.s
+   Uses
+      None
+Comment: ACTIV0 unused
+ACTIV1 00000304
+
+Symbol: ACTIV1
+   Definitions
+      At line 122 in file generale.s
+   Uses
+      None
+Comment: ACTIV1 unused
+D10us 000014B4
+
+Symbol: D10us
+   Definitions
+      At line 101 in file generale.s
+   Uses
+      None
+Comment: D10us unused
+D150us 00009C40
+
+Symbol: D150us
+   Definitions
+      At line 97 in file generale.s
+   Uses
+      None
+Comment: D150us unused
+D15us 00001F40
+
+Symbol: D15us
+   Definitions
+      At line 100 in file generale.s
+   Uses
+      None
+Comment: D15us unused
+D1s 002FFFFF
+
+Symbol: D1s
+   Definitions
+      At line 94 in file generale.s
+   Uses
+      None
+Comment: D1s unused
+D2ms 00002990
+
+Symbol: D2ms
+   Definitions
+      At line 96 in file generale.s
+   Uses
+      None
+Comment: D2ms unused
+D500ns 0000012C
+
+Symbol: D500ns
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 102 in file generale.s
+   Uses
+      None
+Comment: D500ns unused
+D50us 000067E8
+
+Symbol: D50us
+   Definitions
+      At line 99 in file generale.s
+   Uses
+      None
+Comment: D50us unused
+D5ms 000067E8
+
+Symbol: D5ms
+   Definitions
+      At line 95 in file generale.s
+   Uses
+      None
+Comment: D5ms unused
+D75us 00004E20
+
+Symbol: D75us
+   Definitions
+      At line 98 in file generale.s
+   Uses
+      None
+Comment: D75us unused
+DIS0 00000180
+
+Symbol: DIS0
+   Definitions
+      At line 112 in file generale.s
+   Uses
+      None
+Comment: DIS0 unused
+DIS1 00000184
+
+Symbol: DIS1
+   Definitions
+      At line 113 in file generale.s
+   Uses
+      None
+Comment: DIS1 unused
+EN0 00000100
+
+Symbol: EN0
+   Definitions
+      At line 109 in file generale.s
+   Uses
+      None
+Comment: EN0 unused
+EN1 00000104
+
+Symbol: EN1
+   Definitions
+      At line 110 in file generale.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Absolute symbols
+
+      None
+Comment: EN1 unused
+GPIOAFSEL 00000420
+
+Symbol: GPIOAFSEL
+   Definitions
+      At line 45 in file generale.s
+   Uses
+      None
+Comment: GPIOAFSEL unused
+GPIOAMSEL 00000528
+
+Symbol: GPIOAMSEL
+   Definitions
+      At line 60 in file generale.s
+   Uses
+      None
+Comment: GPIOAMSEL unused
+GPIOCR 00000524
+
+Symbol: GPIOCR
+   Definitions
+      At line 59 in file generale.s
+   Uses
+      None
+Comment: GPIOCR unused
+GPIODATA 00000000
+
+Symbol: GPIODATA
+   Definitions
+      At line 33 in file generale.s
+   Uses
+      None
+Comment: GPIODATA unused
+GPIODEN 0000051C
+
+Symbol: GPIODEN
+   Definitions
+      At line 56 in file generale.s
+   Uses
+      None
+Comment: GPIODEN unused
+GPIODIR 00000400
+
+Symbol: GPIODIR
+   Definitions
+      At line 34 in file generale.s
+   Uses
+      None
+Comment: GPIODIR unused
+GPIODR2R 00000500
+
+Symbol: GPIODR2R
+   Definitions
+      At line 47 in file generale.s
+   Uses
+      None
+Comment: GPIODR2R unused
+GPIODR4R 00000504
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Absolute symbols
+
+
+Symbol: GPIODR4R
+   Definitions
+      At line 48 in file generale.s
+   Uses
+      None
+Comment: GPIODR4R unused
+GPIODR8R 00000508
+
+Symbol: GPIODR8R
+   Definitions
+      At line 49 in file generale.s
+   Uses
+      None
+Comment: GPIODR8R unused
+GPIOIBE 00000408
+
+Symbol: GPIOIBE
+   Definitions
+      At line 37 in file generale.s
+   Uses
+      None
+Comment: GPIOIBE unused
+GPIOICR 0000041C
+
+Symbol: GPIOICR
+   Definitions
+      At line 43 in file generale.s
+   Uses
+      None
+Comment: GPIOICR unused
+GPIOIEV 0000040C
+
+Symbol: GPIOIEV
+   Definitions
+      At line 38 in file generale.s
+   Uses
+      None
+Comment: GPIOIEV unused
+GPIOIM 00000410
+
+Symbol: GPIOIM
+   Definitions
+      At line 40 in file generale.s
+   Uses
+      None
+Comment: GPIOIM unused
+GPIOIS 00000404
+
+Symbol: GPIOIS
+   Definitions
+      At line 36 in file generale.s
+   Uses
+      None
+Comment: GPIOIS unused
+GPIOLOCK 00000520
+
+Symbol: GPIOLOCK
+   Definitions
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 58 in file generale.s
+   Uses
+      None
+Comment: GPIOLOCK unused
+GPIOMIS 00000418
+
+Symbol: GPIOMIS
+   Definitions
+      At line 42 in file generale.s
+   Uses
+      None
+Comment: GPIOMIS unused
+GPIOODR 0000050C
+
+Symbol: GPIOODR
+   Definitions
+      At line 51 in file generale.s
+   Uses
+      None
+Comment: GPIOODR unused
+GPIOPCTL 0000052C
+
+Symbol: GPIOPCTL
+   Definitions
+      At line 61 in file generale.s
+   Uses
+      None
+Comment: GPIOPCTL unused
+GPIOPCellID0 00000FF0
+
+Symbol: GPIOPCellID0
+   Definitions
+      At line 72 in file generale.s
+   Uses
+      None
+Comment: GPIOPCellID0 unused
+GPIOPCellID1 00000FF4
+
+Symbol: GPIOPCellID1
+   Definitions
+      At line 73 in file generale.s
+   Uses
+      None
+Comment: GPIOPCellID1 unused
+GPIOPCellID2 00000FF8
+
+Symbol: GPIOPCellID2
+   Definitions
+      At line 74 in file generale.s
+   Uses
+      None
+Comment: GPIOPCellID2 unused
+GPIOPCellID3 00000FFC
+
+Symbol: GPIOPCellID3
+   Definitions
+      At line 75 in file generale.s
+   Uses
+      None
+
+
+
+ARM Macro Assembler    Page 6 Alphabetic symbol ordering
+Absolute symbols
+
+Comment: GPIOPCellID3 unused
+GPIOPDR 00000514
+
+Symbol: GPIOPDR
+   Definitions
+      At line 53 in file generale.s
+   Uses
+      None
+Comment: GPIOPDR unused
+GPIOPUR 00000510
+
+Symbol: GPIOPUR
+   Definitions
+      At line 52 in file generale.s
+   Uses
+      None
+Comment: GPIOPUR unused
+GPIOPeriphID0 00000FE0
+
+Symbol: GPIOPeriphID0
+   Definitions
+      At line 67 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID0 unused
+GPIOPeriphID1 00000FE4
+
+Symbol: GPIOPeriphID1
+   Definitions
+      At line 68 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID1 unused
+GPIOPeriphID2 00000FE8
+
+Symbol: GPIOPeriphID2
+   Definitions
+      At line 69 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID2 unused
+GPIOPeriphID3 00000FEC
+
+Symbol: GPIOPeriphID3
+   Definitions
+      At line 70 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID3 unused
+GPIOPeriphID4 00000FD0
+
+Symbol: GPIOPeriphID4
+   Definitions
+      At line 63 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID4 unused
+GPIOPeriphID5 00000FD4
+
+
+
+
+ARM Macro Assembler    Page 7 Alphabetic symbol ordering
+Absolute symbols
+
+Symbol: GPIOPeriphID5
+   Definitions
+      At line 64 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID5 unused
+GPIOPeriphID6 00000FD8
+
+Symbol: GPIOPeriphID6
+   Definitions
+      At line 65 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID6 unused
+GPIOPeriphID7 00000FDC
+
+Symbol: GPIOPeriphID7
+   Definitions
+      At line 66 in file generale.s
+   Uses
+      None
+Comment: GPIOPeriphID7 unused
+GPIORIS 00000414
+
+Symbol: GPIORIS
+   Definitions
+      At line 41 in file generale.s
+   Uses
+      None
+Comment: GPIORIS unused
+GPIOSLR 00000518
+
+Symbol: GPIOSLR
+   Definitions
+      At line 54 in file generale.s
+   Uses
+      None
+Comment: GPIOSLR unused
+GPIO_PORTA_BASE 40004000
+
+Symbol: GPIO_PORTA_BASE
+   Definitions
+      At line 23 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTA_BASE unused
+GPIO_PORTB_BASE 40005000
+
+Symbol: GPIO_PORTB_BASE
+   Definitions
+      At line 24 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTB_BASE unused
+GPIO_PORTC_BASE 40006000
+
+Symbol: GPIO_PORTC_BASE
+   Definitions
+      At line 25 in file generale.s
+
+
+
+ARM Macro Assembler    Page 8 Alphabetic symbol ordering
+Absolute symbols
+
+   Uses
+      None
+Comment: GPIO_PORTC_BASE unused
+GPIO_PORTD_BASE 40007000
+
+Symbol: GPIO_PORTD_BASE
+   Definitions
+      At line 26 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTD_BASE unused
+GPIO_PORTE_BASE 40024000
+
+Symbol: GPIO_PORTE_BASE
+   Definitions
+      At line 27 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTE_BASE unused
+GPIO_PORTF_BASE 40025000
+
+Symbol: GPIO_PORTF_BASE
+   Definitions
+      At line 28 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTF_BASE unused
+GPIO_PORTG_BASE 40026000
+
+Symbol: GPIO_PORTG_BASE
+   Definitions
+      At line 29 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTG_BASE unused
+GPIO_PORTH_BASE 40027000
+
+Symbol: GPIO_PORTH_BASE
+   Definitions
+      At line 30 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTH_BASE unused
+GPIO_PORTJ_BASE 4003D000
+
+Symbol: GPIO_PORTJ_BASE
+   Definitions
+      At line 31 in file generale.s
+   Uses
+      None
+Comment: GPIO_PORTJ_BASE unused
+GPTMCFG 00000000
+
+Symbol: GPTMCFG
+   Definitions
+      At line 151 in file generale.s
+   Uses
+      None
+Comment: GPTMCFG unused
+
+
+
+ARM Macro Assembler    Page 9 Alphabetic symbol ordering
+Absolute symbols
+
+GPTMCTL 0000000C
+
+Symbol: GPTMCTL
+   Definitions
+      At line 156 in file generale.s
+   Uses
+      None
+Comment: GPTMCTL unused
+GPTMICR 00000024
+
+Symbol: GPTMICR
+   Definitions
+      At line 160 in file generale.s
+   Uses
+      None
+Comment: GPTMICR unused
+GPTMIMR 00000018
+
+Symbol: GPTMIMR
+   Definitions
+      At line 157 in file generale.s
+   Uses
+      None
+Comment: GPTMIMR unused
+GPTMMIS 00000020
+
+Symbol: GPTMMIS
+   Definitions
+      At line 159 in file generale.s
+   Uses
+      None
+Comment: GPTMMIS unused
+GPTMRIS 0000001C
+
+Symbol: GPTMRIS
+   Definitions
+      At line 158 in file generale.s
+   Uses
+      None
+Comment: GPTMRIS unused
+GPTMTAILR 00000028
+
+Symbol: GPTMTAILR
+   Definitions
+      At line 162 in file generale.s
+   Uses
+      None
+Comment: GPTMTAILR unused
+GPTMTAMATCHR 00000030
+
+Symbol: GPTMTAMATCHR
+   Definitions
+      At line 165 in file generale.s
+   Uses
+      None
+Comment: GPTMTAMATCHR unused
+GPTMTAMR 00000004
+
+Symbol: GPTMTAMR
+
+
+
+ARM Macro Assembler    Page 10 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 153 in file generale.s
+   Uses
+      None
+Comment: GPTMTAMR unused
+GPTMTAPMR 00000040
+
+Symbol: GPTMTAPMR
+   Definitions
+      At line 171 in file generale.s
+   Uses
+      None
+Comment: GPTMTAPMR unused
+GPTMTAPR 00000038
+
+Symbol: GPTMTAPR
+   Definitions
+      At line 168 in file generale.s
+   Uses
+      None
+Comment: GPTMTAPR unused
+GPTMTAR 00000048
+
+Symbol: GPTMTAR
+   Definitions
+      At line 174 in file generale.s
+   Uses
+      None
+Comment: GPTMTAR unused
+GPTMTAV 00000050
+
+Symbol: GPTMTAV
+   Definitions
+      At line 177 in file generale.s
+   Uses
+      None
+Comment: GPTMTAV unused
+GPTMTBILR 0000002C
+
+Symbol: GPTMTBILR
+   Definitions
+      At line 163 in file generale.s
+   Uses
+      None
+Comment: GPTMTBILR unused
+GPTMTBMATCHR 00000034
+
+Symbol: GPTMTBMATCHR
+   Definitions
+      At line 166 in file generale.s
+   Uses
+      None
+Comment: GPTMTBMATCHR unused
+GPTMTBMR 00000008
+
+Symbol: GPTMTBMR
+   Definitions
+      At line 154 in file generale.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 11 Alphabetic symbol ordering
+Absolute symbols
+
+      None
+Comment: GPTMTBMR unused
+GPTMTBPMR 00000044
+
+Symbol: GPTMTBPMR
+   Definitions
+      At line 172 in file generale.s
+   Uses
+      None
+Comment: GPTMTBPMR unused
+GPTMTBPR 0000003C
+
+Symbol: GPTMTBPR
+   Definitions
+      At line 169 in file generale.s
+   Uses
+      None
+Comment: GPTMTBPR unused
+GPTMTBR 0000004C
+
+Symbol: GPTMTBR
+   Definitions
+      At line 175 in file generale.s
+   Uses
+      None
+Comment: GPTMTBR unused
+GPTMTBV 00000054
+
+Symbol: GPTMTBV
+   Definitions
+      At line 178 in file generale.s
+   Uses
+      None
+Comment: GPTMTBV unused
+INCTRL 00000D04
+
+Symbol: INCTRL
+   Definitions
+      At line 142 in file generale.s
+   Uses
+      None
+Comment: INCTRL unused
+NVIC_BASE E000E000
+
+Symbol: NVIC_BASE
+   Definitions
+      At line 107 in file generale.s
+   Uses
+      None
+Comment: NVIC_BASE unused
+PEND0 00000200
+
+Symbol: PEND0
+   Definitions
+      At line 115 in file generale.s
+   Uses
+      None
+Comment: PEND0 unused
+PEND1 00000204
+
+
+
+ARM Macro Assembler    Page 12 Alphabetic symbol ordering
+Absolute symbols
+
+
+Symbol: PEND1
+   Definitions
+      At line 116 in file generale.s
+   Uses
+      None
+Comment: PEND1 unused
+PORT0 00000001
+
+Symbol: PORT0
+   Definitions
+      At line 77 in file generale.s
+   Uses
+      None
+Comment: PORT0 unused
+PORT1 00000002
+
+Symbol: PORT1
+   Definitions
+      At line 78 in file generale.s
+   Uses
+      None
+Comment: PORT1 unused
+PORT2 00000004
+
+Symbol: PORT2
+   Definitions
+      At line 79 in file generale.s
+   Uses
+      None
+Comment: PORT2 unused
+PORT3 00000008
+
+Symbol: PORT3
+   Definitions
+      At line 80 in file generale.s
+   Uses
+      None
+Comment: PORT3 unused
+PORT4 00000010
+
+Symbol: PORT4
+   Definitions
+      At line 81 in file generale.s
+   Uses
+      None
+Comment: PORT4 unused
+PORT5 00000020
+
+Symbol: PORT5
+   Definitions
+      At line 82 in file generale.s
+   Uses
+      None
+Comment: PORT5 unused
+PORT6 00000040
+
+Symbol: PORT6
+   Definitions
+
+
+
+ARM Macro Assembler    Page 13 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 83 in file generale.s
+   Uses
+      None
+Comment: PORT6 unused
+PORT7 00000080
+
+Symbol: PORT7
+   Definitions
+      At line 84 in file generale.s
+   Uses
+      None
+Comment: PORT7 unused
+PRI0 00000400
+
+Symbol: PRI0
+   Definitions
+      At line 124 in file generale.s
+   Uses
+      None
+Comment: PRI0 unused
+PRI1 00000404
+
+Symbol: PRI1
+   Definitions
+      At line 125 in file generale.s
+   Uses
+      None
+Comment: PRI1 unused
+PRI10 00000428
+
+Symbol: PRI10
+   Definitions
+      At line 134 in file generale.s
+   Uses
+      None
+Comment: PRI10 unused
+PRI11 0000042C
+
+Symbol: PRI11
+   Definitions
+      At line 135 in file generale.s
+   Uses
+      None
+Comment: PRI11 unused
+PRI12 00000430
+
+Symbol: PRI12
+   Definitions
+      At line 136 in file generale.s
+   Uses
+      None
+Comment: PRI12 unused
+PRI13 00000434
+
+Symbol: PRI13
+   Definitions
+      At line 137 in file generale.s
+   Uses
+      None
+
+
+
+ARM Macro Assembler    Page 14 Alphabetic symbol ordering
+Absolute symbols
+
+Comment: PRI13 unused
+PRI2 00000408
+
+Symbol: PRI2
+   Definitions
+      At line 126 in file generale.s
+   Uses
+      None
+Comment: PRI2 unused
+PRI3 0000040C
+
+Symbol: PRI3
+   Definitions
+      At line 127 in file generale.s
+   Uses
+      None
+Comment: PRI3 unused
+PRI4 00000410
+
+Symbol: PRI4
+   Definitions
+      At line 128 in file generale.s
+   Uses
+      None
+Comment: PRI4 unused
+PRI5 00000414
+
+Symbol: PRI5
+   Definitions
+      At line 129 in file generale.s
+   Uses
+      None
+Comment: PRI5 unused
+PRI6 00000418
+
+Symbol: PRI6
+   Definitions
+      At line 130 in file generale.s
+   Uses
+      None
+Comment: PRI6 unused
+PRI7 0000041C
+
+Symbol: PRI7
+   Definitions
+      At line 131 in file generale.s
+   Uses
+      None
+Comment: PRI7 unused
+PRI8 00000420
+
+Symbol: PRI8
+   Definitions
+      At line 132 in file generale.s
+   Uses
+      None
+Comment: PRI8 unused
+PRI9 00000424
+
+
+
+
+ARM Macro Assembler    Page 15 Alphabetic symbol ordering
+Absolute symbols
+
+Symbol: PRI9
+   Definitions
+      At line 133 in file generale.s
+   Uses
+      None
+Comment: PRI9 unused
+RCGC1 00000104
+
+Symbol: RCGC1
+   Definitions
+      At line 9 in file generale.s
+   Uses
+      None
+Comment: RCGC1 unused
+RCGC2 00000108
+
+Symbol: RCGC2
+   Definitions
+      At line 10 in file generale.s
+   Uses
+      None
+Comment: RCGC2 unused
+SCB 00000008
+
+Symbol: SCB
+   Definitions
+      At line 141 in file generale.s
+   Uses
+      None
+Comment: SCB unused
+SRCR1 00000044
+
+Symbol: SRCR1
+   Definitions
+      At line 12 in file generale.s
+   Uses
+      None
+Comment: SRCR1 unused
+SRCR2 00000044
+
+Symbol: SRCR2
+   Definitions
+      At line 13 in file generale.s
+   Uses
+      None
+Comment: SRCR2 unused
+SWTRIG 00000F00
+
+Symbol: SWTRIG
+   Definitions
+      At line 139 in file generale.s
+   Uses
+      None
+Comment: SWTRIG unused
+SYSCTL 400FE000
+
+Symbol: SYSCTL
+   Definitions
+      At line 6 in file generale.s
+
+
+
+ARM Macro Assembler    Page 16 Alphabetic symbol ordering
+Absolute symbols
+
+   Uses
+      None
+Comment: SYSCTL unused
+SYSCTL_PERIPH 400FE108
+
+Symbol: SYSCTL_PERIPH
+   Definitions
+      At line 16 in file generale.s
+   Uses
+      None
+Comment: SYSCTL_PERIPH unused
+SYSCTL_RCGC2 400FE108
+
+Symbol: SYSCTL_RCGC2
+   Definitions
+      At line 7 in file generale.s
+   Uses
+      None
+Comment: SYSCTL_RCGC2 unused
+TIMER0 40030000
+
+Symbol: TIMER0
+   Definitions
+      At line 146 in file generale.s
+   Uses
+      None
+Comment: TIMER0 unused
+TIMER1 40031000
+
+Symbol: TIMER1
+   Definitions
+      At line 147 in file generale.s
+   Uses
+      None
+Comment: TIMER1 unused
+TIMER2 40032000
+
+Symbol: TIMER2
+   Definitions
+      At line 148 in file generale.s
+   Uses
+      None
+Comment: TIMER2 unused
+TIMER3 40033000
+
+Symbol: TIMER3
+   Definitions
+      At line 149 in file generale.s
+   Uses
+      None
+Comment: TIMER3 unused
+UNPEND0 00000280
+
+Symbol: UNPEND0
+   Definitions
+      At line 118 in file generale.s
+   Uses
+      None
+Comment: UNPEND0 unused
+
+
+
+ARM Macro Assembler    Page 17 Alphabetic symbol ordering
+Absolute symbols
+
+UNPEND1 00000284
+
+Symbol: UNPEND1
+   Definitions
+      At line 119 in file generale.s
+   Uses
+      None
+Comment: UNPEND1 unused
+119 symbols
+454 symbols in table

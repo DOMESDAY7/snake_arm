@@ -163,7 +163,7 @@ ARM Macro Assembler    Page 3
    74 00000000         ; ;; Enable the Port F & D peripheral clock   (p291 data
                        sheet de lm3s9B96.pdf)
    75 00000000         ; ;;         
-   76 00000000 F8DF 910C       ldr              r9, = SYSCTL_PERIPH_GPIO 
+   76 00000000 F8DF 90F4       ldr              r9, = SYSCTL_PERIPH_GPIO 
                                                             ;; RCGC2
    77 00000004 F04F 0438       mov              r4, #0x00000038 ;; Enable clock
                                                              sur GPIO D et F o?
@@ -187,7 +187,7 @@ ARM Macro Assembler    Page 3
    87 00000012         
    88 00000012         ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION LED
    89 00000012         
-   90 00000012 F8DF 9100       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DI
+   90 00000012 F8DF 90E8       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DI
 R 
                                                             ;; 1 Pin du portF e
                                                             n sortie (broche 4 
@@ -202,14 +202,14 @@ ARM Macro Assembler    Page 4
                                                             1 0000 
    92 0000001A F8C9 4000       str              r4, [r9]
    93 0000001E         
-   94 0000001E F8DF 90F8       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DE
+   94 0000001E F8DF 90E0       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DE
 N 
                                                             ;; Enable Digital F
                                                             unction 
    95 00000022 F04F 0430       ldr              r4, = BROCHE4_5
    96 00000026 F8C9 4000       str              r4, [r9]
    97 0000002A         
-   98 0000002A F8DF 90F0       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DR
+   98 0000002A F8DF 90D8       ldr              r9, = GPIO_PORTF_BASE+GPIO_O_DR
 2R 
                                                             ;; Choix de l'inten
                                                             sit? de sortie (2mA
@@ -225,7 +225,7 @@ N
                                                              portF broche 4&5 :
                                                              00110000
   106 0000003E         
-  107 0000003E F8DF 90E0       ldr              r9, = GPIO_PORTF_BASE + (BROCHE
+  107 0000003E F8DF 90C8       ldr              r9, = GPIO_PORTF_BASE + (BROCHE
 4_5<<2) 
                                                             ;; @data Register =
                                                              @base + (mask<<2) 
@@ -237,20 +237,20 @@ N
   112 00000042         
   113 00000042         ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Switcher 1
   114 00000042         
-  115 00000042 4F38            ldr              r7, = GPIO_PORTD_BASE+GPIO_O_DE
+  115 00000042 4F32            ldr              r7, = GPIO_PORTD_BASE+GPIO_O_DE
 N 
                                                             ;; Enable Digital F
                                                             unction 
   116 00000044 F04F 04C0       ldr              r4, = BROCHE6_7
   117 00000048 603C            str              r4, [r7]
   118 0000004A         
-  119 0000004A 4F37            ldr              r7, = GPIO_PORTD_BASE+GPIO_I_PU
+  119 0000004A 4F31            ldr              r7, = GPIO_PORTD_BASE+GPIO_I_PU
 R 
                                                             ;; Pull_up
   120 0000004C F04F 04C0       ldr              r4, = BROCHE6_7
   121 00000050 603C            str              r4, [r7]
   122 00000052         
-  123 00000052 4F36            ldr              r7, = GPIO_PORTD_BASE + (BROCHE
+  123 00000052 4F30            ldr              r7, = GPIO_PORTD_BASE + (BROCHE
 6_7<<2) 
                                                             ;; @data Register =
                                                              @base + (mask<<2) 
@@ -269,20 +269,20 @@ ARM Macro Assembler    Page 5
   129 00000054         
   130 00000054         ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper 1
   131 00000054         
-  132 00000054 F8DF 80D8       ldr              r8, = GPIO_PORTE_BASE+GPIO_O_DE
+  132 00000054 F8DF 80C0       ldr              r8, = GPIO_PORTE_BASE+GPIO_O_DE
 N 
                                                             ;; Enable Digital F
                                                             unction 
   133 00000058 F04F 0403       ldr              r4, = BROCHE0_1
   134 0000005C F8C8 4000       str              r4, [r8]
   135 00000060         
-  136 00000060 F8DF 80D0       ldr              r8, = GPIO_PORTE_BASE+GPIO_I_PU
+  136 00000060 F8DF 80B8       ldr              r8, = GPIO_PORTE_BASE+GPIO_I_PU
 R 
                                                             ;; Pull_up
   137 00000064 F04F 0403       ldr              r4, = BROCHE0_1
   138 00000068 F8C8 4000       str              r4, [r8]
   139 0000006C         
-  140 0000006C F8DF 80C8       ldr              r8, = GPIO_PORTE_BASE + (BROCHE
+  140 0000006C F8DF 80B0       ldr              r8, = GPIO_PORTE_BASE + (BROCHE
 0_1<<2) 
                                                             ;; @data Register =
                                                              @base + (mask<<2) 
@@ -317,7 +317,7 @@ R
   163 00000078 F7FF FFFE       BL               MOTEUR_DROIT_ON
   164 0000007C F7FF FFFE       BL               MOTEUR_GAUCHE_ON
   165 00000080         
-  166 00000080 F8DF D0B8       ldr              r13, =DUREE90 
+  166 00000080 F8DF D0A0       ldr              r13, =DUREE90 
                                                             ; DUREE DE ROTATION
                                                             
   167 00000084         ; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur l
@@ -329,86 +329,77 @@ R
 ARM Macro Assembler    Page 6 
 
 
-  169 00000084 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  170 00000088 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  171 0000008C         ; Evalbot avance droit devant
-  172 0000008C F000 F839       BL               WAIT        ; BL (Branchement v
-                                                            ers le lien WAIT); 
-                                                            possibilit? de reto
-                                                            ur ? la suite avec 
-                                                            (BX LR)
-  173 00000090 E7F8            B                loop
-  174 00000092         
-  175 00000092         
-  176 00000092         gameover
-  177 00000092 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
-  178 00000096 F7FF FFFE       BL               MOTEUR_DROIT_OFF
-  179 0000009A         
-  180 0000009A         gauche
-  181 0000009A F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
-  182 0000009E F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  183 000000A2 F000 F82E       BL               WAIT
-  184 000000A6 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  185 000000AA F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  186 000000AE E7E9            B                loop
-  187 000000B0         
-  188 000000B0         droite
-  189 000000B0 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
-  190 000000B4 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  191 000000B8 F000 F823       BL               WAIT
-  192 000000BC F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  193 000000C0 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  194 000000C4 E7DE            B                loop
-  195 000000C6         
-  196 000000C6         avance
-  197 000000C6 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  198 000000CA F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  199 000000CE         
-  200 000000CE         
-  201 000000CE         conditions
-  202 000000CE F8D8 A000       ldr              r10,[r8]
-  203 000000D2 F1BA 0F00       CMP              r10,#0x00
-  204 000000D6 D0DC            BEQ              gameover
-  205 000000D8         
-  206 000000D8 F8D8 A000       ldr              r10,[r8]
-  207 000000DC F1BA 0F01       CMP              r10,#0x01
-  208 000000E0 D0DB            BEQ              gauche
-  209 000000E2         
-  210 000000E2 F8D8 A000       ldr              r10,[r8]
-  211 000000E6 F1BA 0F02       CMP              r10,#0x02
-  212 000000EA D0E1            BEQ              droite
-  213 000000EC         
-  214 000000EC F8D8 A000       ldr              r10,[r8]
-  215 000000F0 F1BA 0F03       CMP              r10,#0x03
-  216 000000F4 D0E7            BEQ              avance
-  217 000000F6         
-  218 000000F6         
-  219 000000F6         ;; retour ? la suite du lien de branchement
-  220 000000F6 F640 71FF 
-                       WAIT2   ldr              r1, =0x000FFF
-  221 000000FA         
-  222 000000FA         
+  169 00000084 E018            B                conditions
+  170 00000086         ; Evalbot avance droit devant
+  171 00000086         ;BL WAIT ; BL (Branchement vers le lien WAIT); possibili
+                       t? de retour ? la suite avec (BX LR)
+  172 00000086 E7FD            B                loop
+  173 00000088         
+  174 00000088         
+  175 00000088         gameover
+  176 00000088 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  177 0000008C F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  178 00000090 E030            B                fin
+  179 00000092         
+  180 00000092         gauche
+  181 00000092 F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
+  182 00000096 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
+  183 0000009A F000 F822       BL               WAIT
+  184 0000009E E00B            B                conditions
+  185 000000A0         
+  186 000000A0         droite
+  187 000000A0 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
+  188 000000A4 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
+  189 000000A8 F000 F81B       BL               WAIT
+  190 000000AC E004            B                conditions
+  191 000000AE         
+  192 000000AE         avance
+  193 000000AE F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
+  194 000000B2 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
+  195 000000B6 E7E5            B                loop
+  196 000000B8         
+  197 000000B8         
+  198 000000B8         conditions
+  199 000000B8 F8D8 A000       ldr              r10,[r8]
+  200 000000BC F1BA 0F00       CMP              r10,#0x00   ; les deux 
+  201 000000C0 D0E2            BEQ              gameover
+  202 000000C2         
+  203 000000C2 F8D8 A000       ldr              r10,[r8]
+  204 000000C6 F1BA 0F01       CMP              r10,#0x01   ; collision gauche
+  205 000000CA D0E2            BEQ              gauche
+  206 000000CC         
+  207 000000CC F8D8 A000       ldr              r10,[r8]
+  208 000000D0 F1BA 0F02       CMP              r10,#0x02   ; collision droite
+  209 000000D4 D0E4            BEQ              droite
+  210 000000D6         
+  211 000000D6 F8D8 A000       ldr              r10,[r8]
+  212 000000DA F1BA 0F03       CMP              r10,#0x03   ; pas de collision
+  213 000000DE D0E6            BEQ              avance
+  214 000000E0         
+  215 000000E0 4770            BX               LR
+  216 000000E2         
+  217 000000E2         ;; Boucle d'attante  
+  218 000000E2 4911    WAIT    ldr              r1, =0x10FFFF
+  219 000000E4         
+  220 000000E4         
+  221 000000E4 F8D8 A000 
+                       wait1   ldr              r10,[r8]
+  222 000000E8 F1BA 0F00       CMP              r10,#0x00   ; les deux 
+  223 000000EC D0CC            BEQ              gameover
+  224 000000EE 3901            subs             r1, #1
+  225 000000F0 D1F8            BNE              wait1
 
 
 
 ARM Macro Assembler    Page 7 
 
 
-  223 000000FA 3901    wait2   subs             r1, #1
-  224 000000FC F7FF FFE7       BL               conditions
-  225 00000100 4770            BX               LR
-  226 00000102         
-  227 00000102         ;; Boucle d'attante  
-  228 00000102 F640 71FF 
-                       WAIT    ldr              r1, =0x000FFF
-  229 00000106         
-  230 00000106         
-  231 00000106 3901    wait1   subs             r1, #1
-  232 00000108 F7FF FFE1       BL               conditions
-  233 0000010C 4770            BX               LR
-  234 0000010E BF00            NOP
-  235 00000110                 END
-              400FE108 
+  226 000000F2 4770            BX               LR
+  227 000000F4         
+  228 000000F4         
+  229 000000F4 BF00    fin     NOP
+  230 000000F6                 END
+              00 00 400FE108 
               40025400 
               4002551C 
               40025500 
@@ -420,6 +411,7 @@ ARM Macro Assembler    Page 7
               40024510 
               4002400C 
               0AFFFFFF 
+              0010FFFF 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --depend=.\ob
 jects\rk_priseenmain_moteurs.d -o.\objects\rk_priseenmain_moteurs.o -I.\RTE\_Ta
 rget_1 -I"C:\Users\TOP SECRET\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Cor
@@ -442,24 +434,15 @@ Symbol: .text
    Uses
       None
 Comment: .text unused
-WAIT 00000102
+WAIT 000000E2
 
 Symbol: WAIT
    Definitions
-      At line 228 in file RK_PriseEnMain_Moteurs.s
+      At line 218 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 172 in file RK_PriseEnMain_Moteurs.s
       At line 183 in file RK_PriseEnMain_Moteurs.s
-      At line 191 in file RK_PriseEnMain_Moteurs.s
+      At line 189 in file RK_PriseEnMain_Moteurs.s
 
-WAIT2 000000F6
-
-Symbol: WAIT2
-   Definitions
-      At line 220 in file RK_PriseEnMain_Moteurs.s
-   Uses
-      None
-Comment: WAIT2 unused
 __main 00000000
 
 Symbol: __main
@@ -468,52 +451,62 @@ Symbol: __main
    Uses
       At line 8 in file RK_PriseEnMain_Moteurs.s
 Comment: __main used once
-avance 000000C6
+avance 000000AE
 
 Symbol: avance
    Definitions
-      At line 196 in file RK_PriseEnMain_Moteurs.s
+      At line 192 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 216 in file RK_PriseEnMain_Moteurs.s
+      At line 213 in file RK_PriseEnMain_Moteurs.s
 Comment: avance used once
-conditions 000000CE
+conditions 000000B8
 
 Symbol: conditions
    Definitions
-      At line 201 in file RK_PriseEnMain_Moteurs.s
+      At line 198 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 224 in file RK_PriseEnMain_Moteurs.s
-      At line 232 in file RK_PriseEnMain_Moteurs.s
+      At line 169 in file RK_PriseEnMain_Moteurs.s
+      At line 184 in file RK_PriseEnMain_Moteurs.s
+      At line 190 in file RK_PriseEnMain_Moteurs.s
 
-droite 000000B0
+droite 000000A0
 
 Symbol: droite
    Definitions
-      At line 188 in file RK_PriseEnMain_Moteurs.s
+      At line 186 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 212 in file RK_PriseEnMain_Moteurs.s
+      At line 209 in file RK_PriseEnMain_Moteurs.s
 Comment: droite used once
+fin 000000F4
+
+Symbol: fin
+   Definitions
+      At line 229 in file RK_PriseEnMain_Moteurs.s
+   Uses
+      At line 178 in file RK_PriseEnMain_Moteurs.s
+Comment: fin used once
 
 
 
 ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 Relocatable symbols
 
-gameover 00000092
+gameover 00000088
 
 Symbol: gameover
    Definitions
-      At line 176 in file RK_PriseEnMain_Moteurs.s
+      At line 175 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 204 in file RK_PriseEnMain_Moteurs.s
-Comment: gameover used once
-gauche 0000009A
+      At line 201 in file RK_PriseEnMain_Moteurs.s
+      At line 223 in file RK_PriseEnMain_Moteurs.s
+
+gauche 00000092
 
 Symbol: gauche
    Definitions
       At line 180 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 208 in file RK_PriseEnMain_Moteurs.s
+      At line 205 in file RK_PriseEnMain_Moteurs.s
 Comment: gauche used once
 loop 00000084
 
@@ -521,27 +514,18 @@ Symbol: loop
    Definitions
       At line 168 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 173 in file RK_PriseEnMain_Moteurs.s
-      At line 186 in file RK_PriseEnMain_Moteurs.s
-      At line 194 in file RK_PriseEnMain_Moteurs.s
+      At line 172 in file RK_PriseEnMain_Moteurs.s
+      At line 195 in file RK_PriseEnMain_Moteurs.s
 
-wait1 00000106
+wait1 000000E4
 
 Symbol: wait1
    Definitions
-      At line 231 in file RK_PriseEnMain_Moteurs.s
+      At line 221 in file RK_PriseEnMain_Moteurs.s
    Uses
-      None
-Comment: wait1 unused
-wait2 000000FA
-
-Symbol: wait2
-   Definitions
-      At line 223 in file RK_PriseEnMain_Moteurs.s
-   Uses
-      None
-Comment: wait2 unused
-12 symbols
+      At line 225 in file RK_PriseEnMain_Moteurs.s
+Comment: wait1 used once
+11 symbols
 
 
 
@@ -703,7 +687,7 @@ Symbol: MOTEUR_DROIT_ARRIERE
    Definitions
       At line 16 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 189 in file RK_PriseEnMain_Moteurs.s
+      At line 187 in file RK_PriseEnMain_Moteurs.s
 Comment: MOTEUR_DROIT_ARRIERE used once
 MOTEUR_DROIT_AVANT 00000000
 
@@ -711,11 +695,8 @@ Symbol: MOTEUR_DROIT_AVANT
    Definitions
       At line 15 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 169 in file RK_PriseEnMain_Moteurs.s
       At line 182 in file RK_PriseEnMain_Moteurs.s
-      At line 184 in file RK_PriseEnMain_Moteurs.s
-      At line 192 in file RK_PriseEnMain_Moteurs.s
-      At line 198 in file RK_PriseEnMain_Moteurs.s
+      At line 194 in file RK_PriseEnMain_Moteurs.s
 
 MOTEUR_DROIT_INVERSE 00000000
 
@@ -731,7 +712,7 @@ Symbol: MOTEUR_DROIT_OFF
    Definitions
       At line 14 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 178 in file RK_PriseEnMain_Moteurs.s
+      At line 177 in file RK_PriseEnMain_Moteurs.s
 Comment: MOTEUR_DROIT_OFF used once
 MOTEUR_DROIT_ON 00000000
 
@@ -755,19 +736,16 @@ Symbol: MOTEUR_GAUCHE_AVANT
    Definitions
       At line 21 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 170 in file RK_PriseEnMain_Moteurs.s
+      At line 188 in file RK_PriseEnMain_Moteurs.s
+      At line 193 in file RK_PriseEnMain_Moteurs.s
+
+MOTEUR_GAUCHE_INVERSE 00000000
 
 
 
 ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 External symbols
 
-      At line 185 in file RK_PriseEnMain_Moteurs.s
-      At line 190 in file RK_PriseEnMain_Moteurs.s
-      At line 193 in file RK_PriseEnMain_Moteurs.s
-      At line 197 in file RK_PriseEnMain_Moteurs.s
-
-MOTEUR_GAUCHE_INVERSE 00000000
 
 Symbol: MOTEUR_GAUCHE_INVERSE
    Definitions
@@ -781,7 +759,7 @@ Symbol: MOTEUR_GAUCHE_OFF
    Definitions
       At line 20 in file RK_PriseEnMain_Moteurs.s
    Uses
-      At line 177 in file RK_PriseEnMain_Moteurs.s
+      At line 176 in file RK_PriseEnMain_Moteurs.s
 Comment: MOTEUR_GAUCHE_OFF used once
 MOTEUR_GAUCHE_ON 00000000
 
@@ -800,4 +778,4 @@ Symbol: MOTEUR_INIT
       At line 160 in file RK_PriseEnMain_Moteurs.s
 Comment: MOTEUR_INIT used once
 11 symbols
-374 symbols in table
+373 symbols in table

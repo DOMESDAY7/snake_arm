@@ -166,72 +166,67 @@ __main
 		ldr r13, =DUREE90 ; DUREE DE ROTATION
 		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui m?me)
 loop	
-		BL	MOTEUR_DROIT_AVANT	   
-		BL	MOTEUR_GAUCHE_AVANT
+		B conditions
 		; Evalbot avance droit devant
-		BL	WAIT	; BL (Branchement vers le lien WAIT); possibilit? de retour ? la suite avec (BX LR)
+		;BL	WAIT	; BL (Branchement vers le lien WAIT); possibilit? de retour ? la suite avec (BX LR)
 		B loop
 		
 
 gameover
 		BL MOTEUR_GAUCHE_OFF
 		BL MOTEUR_DROIT_OFF
+		B fin
 		
 gauche
 		BL MOTEUR_GAUCHE_ARRIERE
 		BL MOTEUR_DROIT_AVANT
 		BL WAIT
-		BL	MOTEUR_DROIT_AVANT	   
-		BL	MOTEUR_GAUCHE_AVANT
-		B loop
+		B conditions
 		
 droite
 		BL MOTEUR_DROIT_ARRIERE
 		BL MOTEUR_GAUCHE_AVANT
 		BL WAIT
-		BL	MOTEUR_DROIT_AVANT	   
-		BL	MOTEUR_GAUCHE_AVANT
-		B loop
+		B conditions
 		
 avance
 		BL MOTEUR_GAUCHE_AVANT
 		BL MOTEUR_DROIT_AVANT
+		B loop
 		
 
 conditions
 		ldr r10,[r8]
-		CMP r10,#0x00
+		CMP r10,#0x00 ; les deux 
         BEQ gameover
 		
 		ldr r10,[r8]
-		CMP r10,#0x01
+		CMP r10,#0x01 ; collision gauche
         BEQ gauche
 		
 		ldr r10,[r8]
-		CMP r10,#0x02
+		CMP r10,#0x02 ; collision droite
         BEQ droite
 		
 		ldr r10,[r8]
-		CMP r10,#0x03
+		CMP r10,#0x03 ; pas de collision
         BEQ avance
-
 		
-		;; retour ? la suite du lien de branchement
-WAIT2	ldr r1, =0x000FFF
-		
-		
-wait2	subs r1, #1
-		BL conditions
 		BX	LR
 
 ;; Boucle d'attante		
-WAIT	ldr r1, =0x000FFF
+WAIT	ldr r1, =0x10FFFF
 		
 		
-wait1	subs r1, #1
-		BL conditions
+wait1	ldr r10,[r8]
+		CMP r10,#0x00 ; les deux 
+        BEQ gameover
+		subs r1, #1
+		BNE wait1
 		BX	LR
-		NOP
+		
+		
+fin		NOP
         END
 
 			

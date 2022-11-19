@@ -1,0 +1,225 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;;; RK - Evalbot (Cortex M3 de Texas Instrument)
+    2 00000000         ; ;; Les deux LEDs sont initialement allumées
+    3 00000000         ; ;; Ce programme lis l'état du bouton poussoir 1 connec
+                       tée au port GPIOD broche 6
+    4 00000000         ; ;; Si bouton poussoir fermé ==> fait clignoter les deu
+                       x LED1&2 connectée au port GPIOF broches 4&5.
+    5 00000000         ;    
+    6 00000000         ;  AREA    |.text|, CODE, READONLY
+    7 00000000         ; 
+    8 00000000         ;; This register controls the clock gating logic in norm
+                       al Run mode
+    9 00000000         ;SYSCTL_PERIPH_GPIO EQU  0x400FE108 ; SYSCTL_RCGC2_R (p2
+                       91 datasheet de lm3s9b92.pdf)
+   10 00000000         
+   11 00000000         ;; The GPIODATA register is the data register
+   12 00000000         ;GPIO_PORTF_BASE  EQU  0x40025000 ; GPIO Port F (APB) ba
+                       se: 0x4002.5000 (p416 datasheet de lm3s9B92.pdf)
+   13 00000000         
+   14 00000000         ;; The GPIODATA register is the data register
+   15 00000000         ;GPIO_PORTD_BASE  EQU  0x40007000  ; GPIO Port D (APB) b
+                       ase: 0x4000.7000 (p416 datasheet de lm3s9B92.pdf)
+   16 00000000         
+   17 00000000         ;; The GPIODATA register is the data register
+   18 00000000         ;GPIO_PORTE_BASE  EQU  0x40024000  ; GPIO Port E (APB) b
+                       ase: 0x4002.4000 (p416 datasheet de lm3s9B92.pdf)
+   19 00000000         
+   20 00000000         
+   21 00000000         
+   22 00000000         ;; configure the corresponding pin to be an output
+   23 00000000         ;; all GPIO pins are inputs by default
+   24 00000000         ;GPIO_O_DIR     EQU  0x00000400  ; GPIO Direction (p417 
+                       datasheet de lm3s9B92.pdf)
+   25 00000000         
+   26 00000000         ;; The GPIODR2R register is the 2-mA drive control regis
+                       ter
+   27 00000000         ;; By default, all GPIO pins have 2-mA drive.
+   28 00000000         ;GPIO_O_DR2R     EQU  0x00000500  ; GPIO 2-mA Drive Sele
+                       ct (p428 datasheet de lm3s9B92.pdf)
+   29 00000000         
+   30 00000000         ;; Digital enable register
+   31 00000000         ;; To use the pin as a digital input or output, the corr
+                       esponding GPIODEN bit must be set.
+   32 00000000         ;GPIO_O_DEN    EQU  0x0000051C  ; GPIO Digital Enable (p
+                       437 datasheet de lm3s9B92.pdf)
+   33 00000000         
+   34 00000000         ;; Pull_up
+   35 00000000         ;GPIO_I_PUR     EQU  0x00000510  ; GPIO Pull-Up (p432 da
+                       tasheet de lm3s9B92.pdf)
+   36 00000000         
+   37 00000000         ;; Broches select
+   38 00000000         ;BROCHE4_5   EQU  0x30  ; led1 & led2 sur broche 4 et 5 
+                       
+   39 00000000         
+   40 00000000         ;BROCHE6    EQU  0x40  ; bouton poussoir 1
+   41 00000000         
+   42 00000000         ;BROCHE6_7   EQU  0xC0  ; bouton poussoir 1
+   43 00000000         
+   44 00000000         ;BROCHE0_1   EQU  0x03
+   45 00000000         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   46 00000000         ;; blinking frequency
+   47 00000000         ;DUREE      EQU     0x002FFFFF
+   48 00000000         
+   49 00000000         
+   50 00000000         ;    ENTRY
+   51 00000000         ;  EXPORT __main
+   52 00000000         ;__main 
+   53 00000000         
+   54 00000000         ;  ; ;; Enable the Port F & D peripheral clock   (p291 d
+                       atasheet de lm3s9B96.pdf)
+   55 00000000         ;  ; ;;         
+   56 00000000         ;  ldr r6, = SYSCTL_PERIPH_GPIO     ;; RCGC2
+   57 00000000         ;        mov r0, #0x00000038       ;; Enable clock sur G
+                       PIO D et F où sont branchés les leds (0x28 == 0b101000)
+   58 00000000         ;  ; ;;                              (GPIO::FEDCBA)
+   59 00000000         ;        str r0, [r6]
+   60 00000000         
+   61 00000000         ;  ; ;; "There must be a delay of 3 system clocks before
+                        any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
+   62 00000000         ;  nop             ;; tres tres important....
+   63 00000000         ;  nop    
+   64 00000000         ;  nop             ;; pas necessaire en simu ou en debbu
+                       g step by step...
+   65 00000000         ; 
+   66 00000000         ;  ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION LED
+   67 00000000         
+   68 00000000         ;        ldr r6, = GPIO_PORTF_BASE+GPIO_O_DIR    ;; 1 Pi
+                       n du portF en sortie (broche 4 : 00010000)
+   69 00000000         ;        ldr r0, = BROCHE4_5  ; 0x30 = 0b 0011 0000 
+   70 00000000         ;        str r0, [r6]
+   71 00000000         ;  
+   72 00000000         ;  ldr r6, = GPIO_PORTF_BASE+GPIO_O_DEN ;; Enable Digita
+                       l Function 
+   73 00000000         ;        ldr r0, = BROCHE4_5  
+   74 00000000         ;        str r0, [r6]
+   75 00000000         ;  
+   76 00000000         ;  ldr r6, = GPIO_PORTF_BASE+GPIO_O_DR2R ;; Choix de l'i
+                       ntensité de sortie (2mA)
+   77 00000000         ;        ldr r0, = BROCHE4_5   
+   78 00000000         ;        str r0, [r6]
+   79 00000000         ;  
+   80 00000000         ;  mov r2, #0x000            ;; pour eteindre LED
+   81 00000000         ;     
+   82 00000000         ;  ; allumer la led broche 4 (BROCHE4_5)
+   83 00000000         ;  mov r3, #BROCHE4_5  ;; Allume LED1&2 portF broche 4&5
+                        : 00110000
+   84 00000000         ;  
+   85 00000000         ;  ldr r6, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data 
+                       Register = @base + (mask<<2) ==> LED1
+   86 00000000         ;    
+   87 00000000         ;  ;vvvvvvvvvvvvvvvvvvvvvvvFin configuration LED 
+   88 00000000         
+   89 00000000         ;  
+   90 00000000         ;  
+   91 00000000         ;  ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Switcher
+                        1
+   92 00000000         ;  
+   93 00000000         ;  ldr r7, = GPIO_PORTD_BASE+GPIO_O_DEN ;; Enable Digita
+                       l Function 
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   94 00000000         ;        ldr r0, = BROCHE6_7 
+   95 00000000         ;        str r0, [r7]  
+   96 00000000         
+   97 00000000         ;  ldr r7, = GPIO_PORTD_BASE+GPIO_I_PUR ;; Pull_up
+   98 00000000         ;        ldr r0, = BROCHE6_7  
+   99 00000000         ;        str r0, [r7]
+  100 00000000         
+  101 00000000         ;  ldr r7, = GPIO_PORTD_BASE + (BROCHE6_7<<2)  ;; @data 
+                       Register = @base + (mask<<2) ==> Switcher
+  102 00000000         ;  
+  103 00000000         ;  ;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Switcher 
+  104 00000000         ;  
+  105 00000000         ;  
+  106 00000000         ;   
+  107 00000000         ;  
+  108 00000000         ;    ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Bumper
+                        1
+  109 00000000         ;  
+  110 00000000         ;  ldr r8, = GPIO_PORTE_BASE+GPIO_O_DEN ;; Enable Digita
+                       l Function 
+  111 00000000         ;        ldr r0, = BROCHE0_1 
+  112 00000000         ;        str r0, [r8]  
+  113 00000000         
+  114 00000000         ;  ldr r8, = GPIO_PORTE_BASE+GPIO_I_PUR ;; Pull_up
+  115 00000000         ;        ldr r0, = BROCHE0_1  
+  116 00000000         ;        str r0, [r8]
+  117 00000000         
+  118 00000000         ;  ldr r8, = GPIO_PORTE_BASE + (BROCHE0_1<<2)  ;; @data 
+                       Register = @base + (mask<<2) ==> Switcher
+  119 00000000         ;  
+  120 00000000         ;  ;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Switcher 
+  121 00000000         ;  
+  122 00000000         ;  
+  123 00000000         ;   
+  124 00000000         ;  
+  125 00000000         ;  
+  126 00000000         ;  
+  127 00000000         ;  
+  128 00000000         ;  
+  129 00000000         
+  130 00000000         ;  ;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CLIGNOTTEMENT
+  131 00000000         
+  132 00000000         ;  str r3, [r6]         ;; Allume LED1&2 portF broche 4&
+                       5 : 00110000 (contenu de r3)
+  133 00000000         
+  134 00000000         ;ReadState
+  135 00000000         
+  136 00000000         ;  ldr r10,[r8]
+  137 00000000         ;  CMP r10,#0x00
+  138 00000000         ;  BNE ReadState
+  139 00000000         
+  140 00000000         ;loop
+  141 00000000         ;        str r2, [r6]          ;; Eteint LED car r2 = 0x
+                       00      
+  142 00000000         ;        ldr r1, = DUREE       ;; pour la duree de la bo
+                       ucle d'attente1 (wait1)
+  143 00000000         
+  144 00000000         ;wait1 subs r1, #1
+  145 00000000         ;        bne wait1
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  146 00000000         
+  147 00000000         ;        str r3, [r6]         ;; Allume LED1&2 portF bro
+                       che 4&5 : 00110000 (contenu de r3)
+  148 00000000         ;        ldr r1, = DUREE       ;; pour la duree de la bo
+                       ucle d'attente2 (wait2)
+  149 00000000         
+  150 00000000         ;wait2   subs r1, #1
+  151 00000000         ;        bne wait2
+  152 00000000         
+  153 00000000         ;        b loop       
+  154 00000000         ;  
+  155 00000000         
+  156 00000000         ;  
+  157 00000000         ;  nop  
+  158 00000000         ;  END 
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --depend=.\ob
+jects\ledcli.d -o.\objects\ledcli.o -I.\RTE\_Target_1 -I"C:\Users\TOP SECRET\Ap
+pData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include" -I"C:\Users\TOP SECRE
+T\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\Device\ARM\ARMCM3\Include" --predefin
+e="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSIO
+N SETA 528" --predefine="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --list=.\lis
+tings\ledcli.lst ledcli.s
+335 symbols in table
