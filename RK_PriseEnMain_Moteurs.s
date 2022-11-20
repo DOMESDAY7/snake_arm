@@ -54,6 +54,10 @@ GPIO_I_PUR   		EQU 	0x00000510  ; GPIO Pull-Up (p432 datasheet de lm3s9B92.pdf)
 ; Broches select
 BROCHE4_5			EQU		0x30		; led1 & led2 sur broche 4 et 5 
 
+BROCHE4				EQU		0x20		; led1 & led2 sur broche 4 et 5 
+	
+BROCHE5				EQU		0x10		; led1 & led2 sur broche 4 et 5 
+
 BROCHE6				EQU 	0x40		; bouton poussoir 1
 
 BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
@@ -61,7 +65,14 @@ BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
 BROCHE0_1			EQU		0x03
 
 ; blinking frequency
+<<<<<<< Updated upstream
 DUREE   			EQU     0x002FFFFF
+=======
+DUREE   			EQU     0x0002FFFF
+	
+DUREE90				EQU		0xAFFFFFF
+
+>>>>>>> Stashed changes
 
 
 
@@ -96,10 +107,16 @@ __main
         ldr r4, = BROCHE4_5			
         str r4, [r9]
 		
+		
+		
 		mov r2, #0x000       					;; pour eteindre LED
      
 		; allumer la led broche 4 (BROCHE4_5)
 		mov r3, #BROCHE4_5		;; Allume LED1&2 portF broche 4&5 : 00110000
+		
+		
+		;mov r12, #BROCHE5
+				
 		
 		ldr r9, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
 			 
@@ -138,13 +155,8 @@ __main
 		
 		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Switcher 
 		
-		
-			
-		
-		
-		
-		
-		
+
+
 
 		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CLIGNOTTEMENT
 
@@ -164,10 +176,15 @@ __main
 
 		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui même)
 loop	
+<<<<<<< Updated upstream
+=======
+		BL conditions
+>>>>>>> Stashed changes
 		; Evalbot avance droit devant
 		BL	MOTEUR_DROIT_AVANT	   
 		BL	MOTEUR_GAUCHE_AVANT
 		
+<<<<<<< Updated upstream
 		; Avancement pendant une période (deux WAIT)
 		BL	WAIT	; BL (Branchement vers le lien WAIT); possibilité de retour à la suite avec (BX LR)
 		BL	WAIT
@@ -184,6 +201,34 @@ loop
 gameover
 		BL MOTEUR_GAUCHE_OFF
 		BL MOTEUR_DROIT_OFF
+=======
+		
+gauche
+		BL MOTEUR_GAUCHE_ARRIERE
+		BL MOTEUR_DROIT_AVANT
+		mov r11, #BROCHE4 
+		BL WAIT
+		B loop
+		
+droite
+		BL MOTEUR_DROIT_ARRIERE
+		BL MOTEUR_GAUCHE_AVANT
+		mov r11, #BROCHE5
+		BL WAIT
+		B loop
+		
+avance
+		str r3, [r9]
+		BL MOTEUR_GAUCHE_AVANT
+		BL MOTEUR_DROIT_AVANT
+		B loop
+		
+
+conditions
+		;ldr r10,[r8]
+		;CMP r10,#0x00 ; les deux 
+        ;BEQ gameover
+>>>>>>> Stashed changes
 		
 ;; Boucle d'attante		
 WAIT	ldr r1, =0xAFFFFF
@@ -195,5 +240,48 @@ wait1	subs r1, #1
 		;; retour à la suite du lien de branchement
 		BX	LR
 
+<<<<<<< Updated upstream
 		NOP
         END
+=======
+;; Boucle d'attante		
+WAIT	MOV R12	,#3
+		
+		
+clignotte
+        str r2, [r9]    						;; Eteint LED car r2 = 0x00      
+        ldr r1, = DUREE 						;; pour la duree de la boucle d'attente1 (wait1)
+
+led_on	ldr r10,[r8]  
+		CMP r10,#0x00 ; les deux 
+        BEQ gameover
+		subs r1, #1
+        bne led_on
+
+        str r11, [r9]  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
+        ldr r1, = DUREE							;; pour la duree de la boucle d'attente2 (wait2)
+
+led_off	ldr r10,[r8]  
+		CMP r10,#0x00 ; les deux 
+        BEQ gameover
+		subs r1, #1
+		bne led_off
+		
+		SUBS R12, R12, #1 
+		BNE clignotte
+        BX LR  ; pour WAIT
+		
+gameover BL MOTEUR_GAUCHE_OFF
+		 BL MOTEUR_DROIT_OFF
+		 mov r11, #BROCHE4_5
+		 BL WAIT
+		 str r2, [r9]
+		 NOP
+         END
+
+			
+
+			
+
+		
+>>>>>>> Stashed changes
