@@ -1,5 +1,5 @@
 	;; RK - Evalbot (Cortex M3 de Texas Instrument)
-; programme - Pilotage 2 Moteurs Evalbot par PWM tout en ASM (Evalbot tourne sur lui même)
+; programme - Pilotage 2 Moteurs Evalbot par PWM tout en ASM (Evalbot tourne sur lui m?me)
 
 
 
@@ -11,15 +11,15 @@
 		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
 		
 		IMPORT	MOTEUR_DROIT_ON				; activer le moteur droit
-		IMPORT  MOTEUR_DROIT_OFF			; déactiver le moteur droit
+		IMPORT  MOTEUR_DROIT_OFF			; d?activer le moteur droit
 		IMPORT  MOTEUR_DROIT_AVANT			; moteur droit tourne vers l'avant
-		IMPORT  MOTEUR_DROIT_ARRIERE		; moteur droit tourne vers l'arrière
+		IMPORT  MOTEUR_DROIT_ARRIERE		; moteur droit tourne vers l'arri?re
 		IMPORT  MOTEUR_DROIT_INVERSE		; inverse le sens de rotation du moteur droit
 		
 		IMPORT	MOTEUR_GAUCHE_ON			; activer le moteur gauche
-		IMPORT  MOTEUR_GAUCHE_OFF			; déactiver le moteur gauche
+		IMPORT  MOTEUR_GAUCHE_OFF			; d?activer le moteur gauche
 		IMPORT  MOTEUR_GAUCHE_AVANT			; moteur gauche tourne vers l'avant
-		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arrière
+		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri?re
 		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
 		
 		; This register controls the clock gating logic in normal Run mode
@@ -64,15 +64,11 @@ BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
 
 BROCHE0_1			EQU		0x03
 
-; blinking frequency
-<<<<<<< Updated upstream
-DUREE   			EQU     0x002FFFFF
-=======
-DUREE   			EQU     0x0002FFFF
-	
-DUREE90				EQU		0xAFFFFFF
 
->>>>>>> Stashed changes
+DUREE   			EQU     0x00042000
+	
+
+
 
 
 
@@ -82,10 +78,10 @@ __main
 		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)
 		; ;;									
 		ldr r9, = SYSCTL_PERIPH_GPIO  			;; RCGC2
-        mov r4, #0x00000038  					;; Enable clock sur GPIO D et F où sont branchés les leds (0x28 == 0b101000)
+        mov r4, #0x00000038  					;; Enable clock sur GPIO D et F o? sont branch?s les leds (0x28 == 0b101000)
 		; ;;														 									      (GPIO::FEDCBA)
         str r4, [r9]
-                                                ;; Enable clock sur GPIO E où est branché le bouton poussoir (0x10 == 0b10000)
+                                                ;; Enable clock sur GPIO E o? est branch? le bouton poussoir (0x10 == 0b10000)
                                                 ;; (GPIO::FEDCBA)
 
 		; ;; "There must be a delay of 3 system clocks before any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
@@ -103,7 +99,7 @@ __main
         ldr r4, = BROCHE4_5		
         str r4, [r9]
 		
-		ldr r9, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensité de sortie (2mA)
+		ldr r9, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit? de sortie (2mA)
         ldr r4, = BROCHE4_5			
         str r4, [r9]
 		
@@ -172,42 +168,20 @@ __main
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON
 
-
-
-		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui même)
+		
+		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui m?me)
 loop	
-<<<<<<< Updated upstream
-=======
 		BL conditions
->>>>>>> Stashed changes
 		; Evalbot avance droit devant
-		BL	MOTEUR_DROIT_AVANT	   
-		BL	MOTEUR_GAUCHE_AVANT
+		;BL	WAIT	; BL (Branchement vers le lien WAIT); possibilit? de retour ? la suite avec (BX LR)
+		B loop
 		
-<<<<<<< Updated upstream
-		; Avancement pendant une période (deux WAIT)
-		BL	WAIT	; BL (Branchement vers le lien WAIT); possibilité de retour à la suite avec (BX LR)
-		BL	WAIT
-		
-		; Rotation à droite de l'Evalbot pendant une demi-période (1 seul WAIT)
-		;BL	MOTEUR_DROIT_ARRIERE   ; MOTEUR_DROIT_INVERSE
-		BL	WAIT
-		ldr r10,[r8]
-		
-		CMP r10,#0x00
-		BNE loop
-		
-
-gameover
-		BL MOTEUR_GAUCHE_OFF
-		BL MOTEUR_DROIT_OFF
-=======
 		
 gauche
 		BL MOTEUR_GAUCHE_ARRIERE
 		BL MOTEUR_DROIT_AVANT
-		mov r11, #BROCHE4 
-		BL WAIT
+		mov r11, #BROCHE4 ; POUR LES LED 
+		BL WAIT ; ROTATION
 		B loop
 		
 droite
@@ -225,25 +199,21 @@ avance
 		
 
 conditions
-		;ldr r10,[r8]
-		;CMP r10,#0x00 ; les deux 
-        ;BEQ gameover
->>>>>>> Stashed changes
 		
-;; Boucle d'attante		
-WAIT	ldr r1, =0xAFFFFF
+		ldr r10,[r8]
+		CMP r10,#0x01 ; collision gauche
+        BEQ gauche
 		
+		ldr r10,[r8]
+		CMP r10,#0x02 ; collision droite
+        BEQ droite
 		
-wait1	subs r1, #1
-        bne wait1
+		ldr r10,[r8]
+		CMP r10,#0x03 ; pas de collision
+        BEQ avance
 		
-		;; retour à la suite du lien de branchement
 		BX	LR
 
-<<<<<<< Updated upstream
-		NOP
-        END
-=======
 ;; Boucle d'attante		
 WAIT	MOV R12	,#3
 		
@@ -252,20 +222,20 @@ clignotte
         str r2, [r9]    						;; Eteint LED car r2 = 0x00      
         ldr r1, = DUREE 						;; pour la duree de la boucle d'attente1 (wait1)
 
-led_on	ldr r10,[r8]  
-		CMP r10,#0x00 ; les deux 
-        BEQ gameover
-		subs r1, #1
-        bne led_on
-
-        str r11, [r9]  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
-        ldr r1, = DUREE							;; pour la duree de la boucle d'attente2 (wait2)
-
 led_off	ldr r10,[r8]  
 		CMP r10,#0x00 ; les deux 
         BEQ gameover
 		subs r1, #1
-		bne led_off
+        bne led_off
+
+        str r11, [r9]  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
+        ldr r1, = DUREE							;; pour la duree de la boucle d'attente2 (wait2)
+
+led_on	ldr r10,[r8]  
+		CMP r10,#0x00 ; les deux 
+        BEQ gameover
+		subs r1, #1
+		bne led_on
 		
 		SUBS R12, R12, #1 
 		BNE clignotte
@@ -278,10 +248,3 @@ gameover BL MOTEUR_GAUCHE_OFF
 		 str r2, [r9]
 		 NOP
          END
-
-			
-
-			
-
-		
->>>>>>> Stashed changes

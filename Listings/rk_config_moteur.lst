@@ -161,8 +161,8 @@ ARM Macro Assembler    Page 3
                                EQU              PWM_BASE+0x0A4
    60 00000000         
    61 00000000         
-   62 00000000 000001B2 
-                       VITESSE EQU              0x1B2       ; Valeures plus pet
+   62 00000000 000000C5 
+                       VITESSE EQU              0x0C5       ; Valeures plus pet
                                                             ites => Vitesse plu
                                                             s rapide exemple 0x
                                                             192
@@ -319,7 +319,7 @@ ARM Macro Assembler    Page 5
                                                             yclique : pour 10% 
                                                             => 1C2h si clock = 
                                                             0F42400
-  161 0000006A F44F 70D9       mov              r0, #VITESSE
+  161 0000006A F04F 00C5       mov              r0, #VITESSE
   162 0000006E 6030            str              r0, [r6]
   163 00000070         
   164 00000070 4E4B            ldr              r6, =PWM0CMPB ;PWM0CMPB recoit 
@@ -398,7 +398,7 @@ ARM Macro Assembler    Page 7
                                                             yclique : pour 10% 
                                                             => 1C2h si clock = 
                                                             0F42400
-  200 000000A4 F44F 70D9       mov              r0, #VITESSE
+  200 000000A4 F04F 00C5       mov              r0, #VITESSE
   201 000000A8 6030            str              r0, [r6]    ;*(int *)(0x4002800
                                                             0+0x058)=0x01C2;
   202 000000AA         
@@ -592,12 +592,12 @@ ARM Macro Assembler    Page 10
               40027008 
               40028008 
               40007008 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
-ork --depend=.\objects\rk_config_moteur.d -o.\objects\rk_config_moteur.o -I.\RT
-E\_Target_1 -I"C:\Users\TOP SECRET\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSI
-S\Core\Include" -I"C:\Users\TOP SECRET\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\
-Device\ARM\ARMCM3\Include" --predefine="__EVAL SETA 1" --predefine="__UVISION_V
-ERSION SETA 528" --predefine="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --list=
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --depend=.\ob
+jects\rk_config_moteur.d -o.\objects\rk_config_moteur.o -I.\RTE\_Target_1 -IC:\
+Users\Mathieu\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include -IC:\U
+sers\Mathieu\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\Device\ARM\ARMCM3\Include 
+--predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 537" --predefin
+e="_RTE_ SETA 1" --predefine="ARMCM3 SETA 1" --predefine="_RTE_ SETA 1" --list=
 .\listings\rk_config_moteur.lst RK_Config_Moteur.s
 
 
@@ -1073,7 +1073,7 @@ Symbol: SYSCTL_RCGC2
       At line 94 in file RK_Config_Moteur.s
       At line 100 in file RK_Config_Moteur.s
 
-VITESSE 000001B2
+VITESSE 000000C5
 
 Symbol: VITESSE
    Definitions
