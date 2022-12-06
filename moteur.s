@@ -64,17 +64,25 @@ BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
 
 BROCHE0_1			EQU		0x03
 
-
-DUREE   			EQU     0x00042000
 	
+VITESSE   			EQU     0x1B2
+VITESSE2   			EQU     0x100
+VITESSE3   			EQU     0x050
 
+; blinking frequency
+DUREE   			EQU     0x001A0000
+DUREE2  			EQU     0x00050000
+DUREE3   			EQU     0x00030000
 
+DUREE90				EQU		0xAFFFFFF
 
-
+PWM_BASE		EQU		0x040028000 	   ;BASE des Block PWM p.1138
+PWM0CMPA		EQU		PWM_BASE+0x058
 
 
 __main	
-
+		
+		
 		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)
 		; ;;									
 		ldr r9, = SYSCTL_PERIPH_GPIO  			;; RCGC2
@@ -108,10 +116,7 @@ __main
 		mov r2, #0x000       					;; pour eteindre LED
      
 		; allumer la led broche 4 (BROCHE4_5)
-		mov r3, #BROCHE4_5		;; Allume LED1&2 portF broche 4&5 : 00110000
-		
-		
-		;mov r12, #BROCHE5
+		mov r3, #BROCHE4_5		;; Allume LED1&2 portF broche 4&5 : 00110000		
 				
 		
 		ldr r9, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
@@ -160,15 +165,14 @@ __main
 
 ;--------------------------------------------------------------------------------------------------------------------
 		;; BL Branchement vers un lien (sous programme)
-
-		; Configure les PWM + GPIO
+		mov r5, #1
+		ldr r13, =VITESSE
 		BL	MOTEUR_INIT	   		   
 		
 		; Activer les deux moteurs droit et gauche
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON
 
-		
 		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui m?me)
 loop	
 		BL conditions
@@ -176,7 +180,7 @@ loop
 		;BL	WAIT	; BL (Branchement vers le lien WAIT); possibilit? de retour ? la suite avec (BX LR)
 		B loop
 		
-		
+;;;;;;;;;;;;;;;;;		DIRECTIONS		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;		
 gauche
 		BL MOTEUR_GAUCHE_ARRIERE
 		BL MOTEUR_DROIT_AVANT
@@ -196,22 +200,86 @@ avance
 		BL MOTEUR_GAUCHE_AVANT
 		BL MOTEUR_DROIT_AVANT
 		B loop
+;;;;;;;;;;;;;;;;;		VITESSE			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+speed
+		mov r5, #1
+		ldr r13, =VITESSE
+		B resetspeed
+
+speed2
+		mov r5, #2
+		ldr r13, =VITESSE2
+		B resetspeed
+
+speed3
+		mov r5, #3
+		ldr r13, =VITESSE3
+		B resetspeed
+
+
+resetspeed
+		BL MOTEUR_INIT
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL MOTEUR_GAUCHE_AVANT
+		BL MOTEUR_DROIT_AVANT
 		
+		NOP
+		NOP
+		NOP
+		B conditions
+
+vitesse
+		CMP R5, #1  
+		BEQ speed2
+		CMP R5, #2  
+		BEQ speed3
+		CMP R5, #3  
+		BEQ speed
+
+		
+		BNE gameover
+;;;;;;;;;;;;;		DURÉE DE ROTATION = 3 fois (DUREE LED_ON + DUREE LED_ON)	;;;;;;;;;;
+; DUREE TOTAL = 6* DUREE
+
+; Mes delays en fonction de la vitesse il adapte la durée de rotation de rotation
+delay1
+		CMP R5, #1  
+		MOVEQ r1, #DUREE
+		CMP R5, #2  
+		MOVEQ r1, #DUREE2
+		CMP R5, #3  
+		MOVEQ r1, #DUREE3
+		B led_off
+		
+delay2
+		CMP R5, #1  
+		MOVEQ r1, #DUREE
+		CMP R5, #2  
+		MOVEQ r1, #DUREE2
+		CMP R5, #3  
+		MOVEQ r1, #DUREE3
+		B led_on
+		
+;;;;;;;;;;;;;		CONDITIONS		;;;;;;;;;;;;;
+
 
 conditions
+		ldr r10,[r7]
+		CMP r10,#0x00 ; switch // CHANGEMENT DE VITESSE
+        BEQ vitesse
 		
 		ldr r10,[r8]
-		CMP r10,#0x01 ; collision gauche
+		CMP r10,#0x01 ; collision gauche // BUMPER GAUCHE
         BEQ gauche
 		
 		ldr r10,[r8]
-		CMP r10,#0x02 ; collision droite
+		CMP r10,#0x02 ; collision droite // BUMPER DROITE
         BEQ droite
 		
 		ldr r10,[r8]
 		CMP r10,#0x03 ; pas de collision
         BEQ avance
-		
 		BX	LR
 
 ;; Boucle d'attante		
@@ -220,7 +288,7 @@ WAIT	MOV R12	,#3
 		
 clignotte
         str r2, [r9]    						;; Eteint LED car r2 = 0x00      
-        ldr r1, = DUREE 						;; pour la duree de la boucle d'attente1 (wait1)
+        B delay1						;; pour la duree de la boucle d'attente1 (wait1)
 
 led_off	ldr r10,[r8]  
 		CMP r10,#0x00 ; les deux 
@@ -229,7 +297,7 @@ led_off	ldr r10,[r8]
         bne led_off
 
         str r11, [r9]  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
-        ldr r1, = DUREE							;; pour la duree de la boucle d'attente2 (wait2)
+        B delay2						;; pour la duree de la boucle d'attente2 (wait2)
 
 led_on	ldr r10,[r8]  
 		CMP r10,#0x00 ; les deux 
@@ -248,3 +316,9 @@ gameover BL MOTEUR_GAUCHE_OFF
 		 str r2, [r9]
 		 NOP
          END
+
+			
+
+			
+
+		
