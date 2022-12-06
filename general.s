@@ -1,330 +1,326 @@
-	;; RK - Evalbot (Cortex M3 de Texas Instrument); 
-; programme - Pilotage 2 Moteurs Evalbot par PWM tout en ASM (configure les pwms + GPIO)
+	;; RK - Evalbot (Cortex M3 de Texas Instrument)
+; programme - Snake 
 
-;Les pages se réfèrent au datasheet lm3s9b92.pdf
-
-;Cablage :
-;pin 10/PD0/PWM0 => input PWM du pont en H DRV8801RT
-;pin 11/PD1/PWM1 => input Phase_R  du pont en H DRV8801RT
-;pin 12/PD2		 => input SlowDecay commune aux 2 ponts en H
-;pin 98/PD5		 => input Enable 12v du conv DC/DC 
-;pin 86/PH0/PWM2 => input PWM du 2nd pont en H
-;pin 85/PH1/PWM3 => input Phase du 2nd pont en H	
-
-;; Hexa corresponding values to pin numbers
-GPIO_0		EQU		0x1
-GPIO_1		EQU		0x2
-GPIO_2		EQU		0x4
-GPIO_5		EQU		0x20
-
-;; pour enable clock    0x400FE000
-SYSCTL_RCGC0	EQU		0x400FE100		;SYSCTL_RCGC0: offset 0x100 (p271 datasheet de lm3s9b92.pdf)
-SYSCTL_RCGC2	EQU		0x400FE108		;SYSCTL_RCGC2: offset 0x108 (p291 datasheet de lm3s9b92.pdf)
-
-;; General-Purpose Input/Outputs (GPIO) configuration
-PORTD_BASE		EQU		0x40007000
-GPIODATA_D		EQU		PORTD_BASE
-GPIODIR_D		EQU		PORTD_BASE+0x00000400
-GPIODR2R_D		EQU		PORTD_BASE+0x00000500
-GPIODEN_D		EQU		PORTD_BASE+0x0000051C
-GPIOPCTL_D		EQU		PORTD_BASE+0x0000052C ; GPIO Port Control (GPIOPCTL), offset 0x52C; p444
-GPIOAFSEL_D		EQU		PORTD_BASE+0x00000420 ; GPIO Alternate Function Select (GPIOAFSEL), offset 0x420; p426
-
-PORTH_BASE		EQU		0x40027000
-GPIODATA_H		EQU		PORTH_BASE
-GPIODIR_H		EQU		PORTH_BASE+0x00000400
-GPIODR2R_H		EQU		PORTH_BASE+0x00000500
-GPIODEN_H		EQU		PORTH_BASE+0x0000051C
-GPIOPCTL_H		EQU		PORTH_BASE+0x0000052C ; GPIO Port Control (GPIOPCTL), offset 0x52C; p444
-GPIOAFSEL_H		EQU		PORTH_BASE+0x00000420 ; GPIO Alternate Function Select (GPIOAFSEL), offset 0x420; p426
-
-;; Pulse Width Modulator (PWM) configuration
-PWM_BASE		EQU		0x040028000 	   ;BASE des Block PWM p.1138
-PWMENABLE		EQU		PWM_BASE+0x008	   ; p1145
-
-;Block PWM0 pour sorties PWM0 et PWM1 (moteur 1)
-PWM0CTL			EQU		PWM_BASE+0x040 ;p1167
-PWM0LOAD		EQU		PWM_BASE+0x050
-PWM0CMPA		EQU		PWM_BASE+0x058
-PWM0CMPB		EQU		PWM_BASE+0x05C
-PWM0GENA		EQU		PWM_BASE+0x060
-PWM0GENB		EQU		PWM_BASE+0x064
-
-;Block PWM1 pour sorties PWM1 et PWM2 (moteur 2)
-PWM1CTL			EQU		PWM_BASE+0x080 
-PWM1LOAD		EQU		PWM_BASE+0x090
-PWM1CMPA		EQU		PWM_BASE+0x098
-PWM1CMPB		EQU		PWM_BASE+0x09C
-PWM1GENA		EQU		PWM_BASE+0x0A0
-PWM1GENB		EQU		PWM_BASE+0x0A4
+; Réalisé par Adam et Mathieu E3FI 1I
 
 
-VITESSE			EQU		0x050	; Valeures plus petites => Vitesse plus rapide exemple 0x192
-								; Valeures plus grandes => Vitesse moins rapide exemple 0x1B2
-						
-						
+
 		AREA    |.text|, CODE, READONLY
 		ENTRY
+		EXPORT	__main
 		
-		;; The EXPORT command specifies that a symbol can be accessed by other shared objects or executables.
-		EXPORT	MOTEUR_INIT
-		EXPORT	MOTEUR_DROIT_ON
-		EXPORT  MOTEUR_DROIT_OFF
-		EXPORT  MOTEUR_DROIT_AVANT
-		EXPORT  MOTEUR_DROIT_ARRIERE
-		EXPORT  MOTEUR_DROIT_INVERSE	
-		EXPORT	MOTEUR_GAUCHE_ON
-		EXPORT  MOTEUR_GAUCHE_OFF
-		EXPORT  MOTEUR_GAUCHE_AVANT
-		EXPORT  MOTEUR_GAUCHE_ARRIERE
-		EXPORT  MOTEUR_GAUCHE_INVERSE
+		;; The IMPORT command specifies that a symbol is defined in a shared object at runtime.
+		IMPORT	MOTEUR_INIT					; initialise les moteurs (configure les pwms + GPIO)
+		
+		IMPORT	MOTEUR_DROIT_ON				; activer le moteur droit
+		IMPORT  MOTEUR_DROIT_OFF			; d?activer le moteur droit
+		IMPORT  MOTEUR_DROIT_AVANT			; moteur droit tourne vers l'avant
+		IMPORT  MOTEUR_DROIT_ARRIERE		; moteur droit tourne vers l'arri?re
+		IMPORT  MOTEUR_DROIT_INVERSE		; inverse le sens de rotation du moteur droit
+		
+		IMPORT	MOTEUR_GAUCHE_ON			; activer le moteur gauche
+		IMPORT  MOTEUR_GAUCHE_OFF			; d?activer le moteur gauche
+		IMPORT  MOTEUR_GAUCHE_AVANT			; moteur gauche tourne vers l'avant
+		IMPORT  MOTEUR_GAUCHE_ARRIERE		; moteur gauche tourne vers l'arri?re
+		IMPORT  MOTEUR_GAUCHE_INVERSE		; inverse le sens de rotation du moteur gauche
+		
+		; This register controls the clock gating logic in normal Run mode
+SYSCTL_PERIPH_GPIO EQU		0x400FE108	; SYSCTL_RCGC2_R (p291 datasheet de lm3s9b92.pdf)
+
+; The GPIODATA register is the data register
+GPIO_PORTF_BASE		EQU		0x40025000	; GPIO Port F (APB) base: 0x4002.5000 (p416 datasheet de lm3s9B92.pdf)
+
+; The GPIODATA register is the data register
+GPIO_PORTD_BASE		EQU		0x40007000		; GPIO Port D (APB) base: 0x4000.7000 (p416 datasheet de lm3s9B92.pdf)
+
+; The GPIODATA register is the data register
+GPIO_PORTE_BASE		EQU		0x40024000		; GPIO Port E (APB) base: 0x4002.4000 (p416 datasheet de lm3s9B92.pdf)
 
 
-MOTEUR_INIT	
-		ldr r6, = SYSCTL_RCGC0
-		ldr	r0, [R6]
-        ORR	r0, r0, #0x00100000  ;;bit 20 = PWM recoit clock: ON (p271) 
-        str r0, [r6]
 
-	;ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_1);PWM clock is processor clock /1
-	;Je ne fais rien car par defaut = OK!!
-	;*(int *) (0x400FE060)= *(int *)(0x400FE060)...;
+; configure the corresponding pin to be an output
+; all GPIO pins are inputs by default
+GPIO_O_DIR   		EQU 	0x00000400  ; GPIO Direction (p417 datasheet de lm3s9B92.pdf)
+
+; The GPIODR2R register is the 2-mA drive control register
+; By default, all GPIO pins have 2-mA drive.
+GPIO_O_DR2R   		EQU 	0x00000500  ; GPIO 2-mA Drive Select (p428 datasheet de lm3s9B92.pdf)
+
+; Digital enable register
+; To use the pin as a digital input or output, the corresponding GPIODEN bit must be set.
+GPIO_O_DEN  		EQU 	0x0000051C  ; GPIO Digital Enable (p437 datasheet de lm3s9B92.pdf)
+
+; Pull_up
+GPIO_I_PUR   		EQU 	0x00000510  ; GPIO Pull-Up (p432 datasheet de lm3s9B92.pdf)
+
+; Broches select
+BROCHE4_5			EQU		0x30		; led1 & led2 sur broche 4 et 5 
+
+BROCHE4				EQU		0x20		; led1 sur broche 4  
 	
-  	;RCGC2 :  Enable port D GPIO(p291 ) car Moteur Droit sur port D 
-		ldr r6, = SYSCTL_RCGC2
-		ldr	r0, [R6] 		
-        ORR	r0, r0, #0x08  ;; Enable port D GPIO 
-        str r0, [r6]
+BROCHE5				EQU		0x10		; led2 sur broche 5 
 
-	;MOT2 : RCGC2 :  Enable port H GPIO  (2eme moteurs)
-		ldr r6, = SYSCTL_RCGC2
-		ldr	r0, [R6] 
-        ORR	r0, r0, #0x80  ;; Enable port H GPIO 
-        str r0, [r6] 
-		
-		nop
-		nop
-		nop
-	 
-	;;Pin muxing pour PWM, port D, reg. GPIOPCTL(p444), 4bits de PCM0=0001<=>PWM (voir p1261)
-	;;il faut mettre 1 pour avoir PD0=PWM0 et PD1=PWM1
-		ldr r6, = GPIOPCTL_D
-		;ldr	r0, [R6] 	 ;;	*(int *)(0x40007000+0x0000052C)=1;
-        ;ORR	r0, r0, #0x01 ;; Port D, pin 1 = PWM 
-		mov	r0, #0x01  
-        str r0, [r6]
-		
-	;;MOT2 : Pin muxing pour PWM, port H, reg. GPIOPCTL(p444), 4bits de PCM0=0001<=>PWM (voir p1261)
-	;;il faut mettre mux = 2 pour avoir PH0=PWM2 et PH1=PWM3
-		ldr r6, = GPIOPCTL_H 
-		mov	r0, #0x02 
-        str r0, [r6]
-		
-	;;Alternate Function Select (p 426), PD0 utilise alernate fonction (PWM au dessus)
-	;;donc PD0 = 1
-		ldr r6, = GPIOAFSEL_D
-		ldr	r0, [R6] 	  ;*(int *)(0x40007000+0x00000420)= *(int *)(0x40007000+0x00000420) | 0x00000001;
-        ORR	r0, r0, #0x01 ;
-        str r0, [r6]
+BROCHE6				EQU 	0x40		; bouton poussoir 1
 
-	;;MOT2 : Alternate Function Select (p 426), PH0 utilise PWM donc Alternate funct
-	;;donc PH0 = 1
-		ldr r6, = GPIOAFSEL_H
-		ldr	r0, [R6] 	  ;*(int *)(0x40007000+0x00000420)= *(int *)(0x40007000+0x00000420) | 0x00000001;
-        ORR	r0, r0, #0x01 ;
-        str r0, [r6]
+BROCHE6_7			EQU 	0xC0		; bouton poussoir 1
+
+BROCHE0_1			EQU		0x03
+
 	
-	;;-----------PWM0 pour moteur 1 connecté à PD0
-	;;PWM0 produit PWM0 et PWM1 output
-	;;Config Modes PWM0 + mode GenA + mode GenB
-		ldr r6, = PWM0CTL
-		mov	r0, #2		;Mode up-down-up-down, pas synchro
-        str r0, [r6]	
-		
-		ldr r6, =PWM0GENA ;en decomptage, qd comparateurA = compteur => sortie pwmA=0
-						;en comptage croissant, qd comparateurA = compteur => sortie pwmA=1
-		mov	r0,	#0x0B0 	;0B0=10110000 => ACTCMPBD=00 (B down:rien), ACTCMPBU=00(B up rien)
-		str r0, [r6]	;ACTCMPAD=10 (A down:pwmA low), ACTCMPAU=11 (A up:pwmA high) , ACTLOAD=00,ACTZERO=00  
-		
-		ldr r6, =PWM0GENB;en comptage croissant, qd comparateurB = compteur => sortie pwmA=1
-		mov	r0,	#0x0B00	;en decomptage, qd comparateurB = compteur => sortie pwmB=0
-		str r0, [r6]	
-	;Config Compteur, comparateur A et comparateur B
-  	;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
-	;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
-	;;on divise par 2 car moteur 6v sur alim 12v
-		ldr	r6, =PWM0LOAD ;PWM0LOAD=periode/2 =0x1F4
-		mov r0,	#0x1F4
-		str	r0,[r6]
-		
-		ldr	r6, =PWM0CMPA ;Valeur rapport cyclique : pour 10% => 1C2h si clock = 0F42400
-		mov	r0, r13
-		str	r0, [r6]  
-		
-		ldr	r6, =PWM0CMPB ;PWM0CMPB recoit meme valeur. (rapport cyclique depend de CMPA)
-		mov	r0,	#0x1F4	
-		str	r0,	[r6]
-		
-	;Control PWM : active PWM Generator 0 (p1167): Enable+up/down + Enable counter debug mod
-		ldr	r6, =PWM0CTL 
-		ldr	r0, [r6]	
-		ORR	r0,	r0,	#0x07
-		str	r0,	[r6]
+VITESSE_EASY  			EQU     0x1B2
+VITESSE_MEDIUM   		EQU     0x100
+VITESSE_HARD   			EQU     0x050
 
-	;;-----------PWM2 pour moteur 2 connecté à PH0
-	;;PWM1block produit PWM2 et PWM3 output
-		;;Config Modes PWM2 + mode GenA + mode GenB
-		ldr r6, = PWM1CTL
-		mov	r0, #2		;Mode up-down-up-down, pas synchro
-        str r0, [r6]	;*(int *)(0x40028000+0x040)=2;
-		
-		ldr r6, =PWM1GENA ;en decomptage, qd comparateurA = compteur => sortie pwmA=0
-						;en comptage croissant, qd comparateurA = compteur => sortie pwmA=1
-		mov	r0,	#0x0B0 	;0B0=10110000 => ACTCMPBD=00 (B down:rien), ACTCMPBU=00(B up rien)
-		str r0, [r6]	;ACTCMPAD=10 (A down:pwmA low), ACTCMPAU=11 (A up:pwmA high) , ACTLOAD=00,ACTZERO=00  
-		
- 		;*(int *)(0x40028000+0x060)=0x0B0; //
-		ldr r6, =PWM1GENB	;*(int *)(0x40028000+0x064)=0x0B00;
-		mov	r0,	#0x0B00	;en decomptage, qd comparateurB = compteur => sortie pwmB=0
-		str r0, [r6]	;en comptage croissant, qd comparateurB = compteur => sortie pwmA=1
-	;Config Compteur, comparateur A et comparateur B
-  	;;#define PWM_PERIOD (ROM_SysCtlClockGet() / 16000),
-	;;en mesure : SysCtlClockGet=0F42400h, /16=0x3E8, 
-	;;on divise par 2 car moteur 6v sur alim 12v
-		;*(int *)(0x40028000+0x050)=0x1F4; //PWM0LOAD=periode/2 =0x1F4
-		ldr	r6, =PWM1LOAD
-		mov r0,	#0x1F4
-		str	r0,[r6]
-		
-		ldr	r6, =PWM1CMPA ;Valeur rapport cyclique : pour 10% => 1C2h si clock = 0F42400
-		mov	r0,	r13
-		str	r0, [r6]  ;*(int *)(0x40028000+0x058)=0x01C2;
-		
-		ldr	r6, =PWM1CMPB ;PWM0CMPB recoit meme valeur. (CMPA depend du rapport cyclique)
-		mov	r0,	#0x1F4	; *(int *)(0x40028000+0x05C)=0x1F4; 
-		str	r0,	[r6]
-		
-	;Control PWM : active PWM Generator 0 (p1167): Enable+up/down + Enable counter debug mod
-		ldr	r6, =PWM1CTL 
-		ldr	r0, [r6]	;*(int *) (0x40028000+0x40)= *(int *)(0x40028000+0x40) | 0x07;
-		ORR	r0,	r0,	#0x07
-		str	r0,	[r6]		
-		
-	;;-----Fin config des PWMs			
-		
-	;PORT D OUTPUT pin0 (pwm)=pin1(direction)=pin2(slow decay)=pin5(12v enable)
-		ldr	r6, =GPIODIR_D 
-		ldr	r0, [r6]
-		ORR	r0,	#(GPIO_0+GPIO_1+GPIO_2+GPIO_5)
-		str	r0,[r6]
-	;Port D, 2mA les meme
-		ldr	r6, =GPIODR2R_D ; 
-		ldr	r0, [r6]
-		ORR	r0,	#(GPIO_0+GPIO_1+GPIO_2+GPIO_5)
-		str	r0,[r6]
-	;Port D, Digital Enable
-		ldr	r6, =GPIODEN_D ;
-		ldr	r0, [r6]
-		ORR	r0,	#(GPIO_0+GPIO_1+GPIO_2+GPIO_5)	
-		str	r0,[r6]	
-	;Port D : mise à 1 de slow Decay et 12V et mise à 0 pour dir et pwm
-		ldr	r6, =(GPIODATA_D+((GPIO_0+GPIO_1+GPIO_2+GPIO_5)<<2)) 
-		mov	r0, #(GPIO_2+GPIO_5) ; #0x24
-		str	r0,[r6]
-		
-	;MOT2, PH1 pour sens moteur ouput
-		ldr	r6, =GPIODIR_H 
-		mov	r0,	#0x03	; 
-		str	r0,[r6]
-	;Port H, 2mA les meme
-		ldr	r6, =GPIODR2R_H
-		mov r0, #0x03	
-		str	r0,[r6]
-	;Port H, Digital Enable
-		ldr	r6, =GPIODEN_H
-		mov r0, #0x03	
-		str	r0,[r6]	
-	;Port H : mise à 1 pour dir 
-		ldr	r6, =(GPIODATA_H +(GPIO_1<<2))
-		mov	r0, #0x02
-		str	r0,[r6]		
-		
-		BX	LR	; FIN du sous programme d'init.
 
-;Enable PWM0 (bit 0) et PWM2 (bit 2) p1145 
-;Attention ici c'est les sorties PWM0 et PWM2
-;qu'on controle, pas les blocks PWM0 et PWM1!!!
-MOTEUR_DROIT_ON
-		;Enable sortie PWM0 (bit 0), p1145 
-		ldr	r6,	=PWMENABLE
-		ldr r0, [r6]
-		orr r0,	#0x01 ;bit 0 à 1
-		str	r0,	[r6]
+; pendant la rotation les leds vont clignotter 3 fois donc 3 * (allumé + eteindre) = 3*2 * DUREE = durée de rotation
+; cette durée saisi est le 1/6 de la durée de rotation car cette durée elle sert aussi 
+
+; blinking frequency
+DUREE_EASY   			EQU     0x001A0000
+DUREE_MEDIUM  			EQU     0x00050000
+DUREE_HARD   			EQU     0x00030000
+
+PWM_BASE		EQU		0x040028000 	   ;BASE des Block PWM p.1138
+PWM0CMPA		EQU		PWM_BASE+0x058
+
+
+__main	
+		
+		
+		; ;; Enable the Port F & D peripheral clock 		(p291 datasheet de lm3s9B96.pdf)
+		; ;;									
+		ldr r9, = SYSCTL_PERIPH_GPIO  			;; RCGC2
+        mov r4, #0x00000038  					;; Enable clock sur GPIO D et F o? sont branch?s les leds (0x28 == 0b101000)
+		; ;;														 									      (GPIO::FEDCBA)
+        str r4, [r9]
+                                                ;; Enable clock sur GPIO E o? est branch? le bouton poussoir (0x10 == 0b10000)
+                                                ;; (GPIO::FEDCBA)
+
+		; ;; "There must be a delay of 3 system clocks before any GPIO reg. access  (p413 datasheet de lm3s9B92.pdf)
+		nop	   									;; tres tres important....
+		nop	   
+		nop	   									;; pas necessaire en simu ou en debbug step by step...
+	
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION LED
+
+        ldr r9, = GPIO_PORTF_BASE+GPIO_O_DIR    ;; 1 Pin du portF en sortie (broche 4 : 00010000)
+        ldr r4, = BROCHE4_5 	; 0x30 = 0b 0011 0000 
+        str r4, [r9]
+		
+		ldr r9, = GPIO_PORTF_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ldr r4, = BROCHE4_5		
+        str r4, [r9]
+		
+		ldr r9, = GPIO_PORTF_BASE+GPIO_O_DR2R	;; Choix de l'intensit? de sortie (2mA)
+        ldr r4, = BROCHE4_5			
+        str r4, [r9]
+		
+		
+		mov r2, #0x000       					;; pour eteindre LED
+		mov r3, #BROCHE4_5		;; Allume LED1&2 portF broche 4&5 : 00110000		
+		ldr r9, = GPIO_PORTF_BASE + (BROCHE4_5<<2)  ;; @data Register = @base + (mask<<2) ==> LED1
+			 
+		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration LED 
+
+		
+		
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Switcher (double switch)
+		
+		ldr r7, = GPIO_PORTD_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ldr r4, = BROCHE6_7	
+        str r4, [r7]  
+
+		ldr r7, = GPIO_PORTD_BASE+GPIO_I_PUR	;; Pull_up
+        ldr r4, = BROCHE6_7		
+        str r4, [r7]
+
+		ldr r7, = GPIO_PORTD_BASE + (BROCHE6_7<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
+		
+		;vvvvvvvvvvvvvvvvvvvvvvvFin configuration Switcher 
+		
+		
+			
+		
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CONFIGURATION Les deux Bumpers
+		
+		ldr r8, = GPIO_PORTE_BASE+GPIO_O_DEN	;; Enable Digital Function 
+        ldr r4, = BROCHE0_1	
+        str r4, [r8]  
+
+		ldr r8, = GPIO_PORTE_BASE+GPIO_I_PUR	;; Pull_up
+        ldr r4, = BROCHE0_1		
+        str r4, [r8]
+
+		ldr r8, = GPIO_PORTE_BASE + (BROCHE0_1<<2)  ;; @data Register = @base + (mask<<2) ==> Switcher
+		
+		;vvvvvvvvvvvvvvvvvvvvvvvCONFIGURATION Les deux Bumpers 
+		
+
+
+
+		;^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^CLIGNOTTEMENT
+
+		str r3, [r9]  							;; Allume LED1&2 portF broche 4&5 : 00110000 (contenu de r3)
+
+		;--------------------------------------------------------------------------------------------------------------------
+		;;;;;;;;;; MOTEUR INITIALISATION + VITESSE A 1		;;;;;;;;;;;;;
+		mov r5, #1
+		ldr r13, =VITESSE_EASY
+		BL	MOTEUR_INIT	   		   
+		
+		; Activer les deux moteurs droit et gauche
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+
+;...............		BOUCLE loop (début du jeu snake)		..............
+
+loop	
+		;	On appelle conditions
+		BL conditions ; <- elle s'occupe de gerer les differents scénarios
+		B loop ;<- 
+		
+;;;;;;;;;;;;;;;;;		DIRECTIONS		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;		
+gauche ; SENS DE ROTATION
+		BL MOTEUR_GAUCHE_ARRIERE
+		BL MOTEUR_DROIT_AVANT
+		mov r11, #BROCHE4 ; LED GAUCHE pour le clignottement
+		BL WAIT ; ROTATION 90°
+		B loop
+		
+droite ; SENS DE ROTATION
+		BL MOTEUR_DROIT_ARRIERE
+		BL MOTEUR_GAUCHE_AVANT
+		mov r11, #BROCHE5 ; LED DROITE pour le clignottement
+		BL WAIT ; ROTATION 90° 
+		B loop
+		
+avance
+		str r3, [r9]
+		BL MOTEUR_GAUCHE_AVANT
+		BL MOTEUR_DROIT_AVANT
+		B loop
+;;;;;;;;;;;;;;;;;		VITESSE			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+speed
+		mov r5, #1
+		ldr r13, =VITESSE_EASY
+		B resetspeed ; On l'appelle à chaque on veut reinitialiser la vitesse
+
+speed2
+		mov r5, #2
+		ldr r13, =VITESSE_MEDIUM
+		B resetspeed
+
+speed3
+		mov r5, #3
+		ldr r13, =VITESSE_HARD
+		B resetspeed
+
+
+resetspeed
+		BL MOTEUR_INIT ; On reinitialise le moteur donc ça vitesse
+		BL	MOTEUR_DROIT_ON ; On allume les moteurs
+		BL	MOTEUR_GAUCHE_ON
+		BL MOTEUR_GAUCHE_AVANT
+		BL MOTEUR_DROIT_AVANT
+		B conditions ; On retourne dans conditions
+		
+
+;;;;; VITESSE est executé si le switch est activé
+vitesse
+		CMP R5, #1  ; SI ON EST A LA VITESSE 1 ON PASSE A LA DEUX
+		BEQ speed2	
+		CMP R5, #2  ; SI ON EST A LA VITESSE 2 ON PASSE A LA TROIS
+		BEQ speed3
+		CMP R5, #3  ; SI ON EST A LA VITESSE 3 ON PASSE A LA UNE // 
+		BEQ speed
+
+		
+		BNE gameover
+;;;;;;;;;;;;;		DURÉE DE ROTATION = 3 fois (DUREE LED_ON + DUREE LED_ON)	;;;;;;;;;;
+; DUREE TOTAL = 6* DUREE
+
+; Mes delays en fonction de la vitesse il adapte la durée de rotation 
+delay1
+		CMP R5, #1  ; SI R5=1
+		MOVEQ r1, #DUREE_EASY ; C'EST LA VITESSE LA PLUS BASSE DONC ON ADAPTE LA DURÉE AVEC VITESSE
+		CMP R5, #2  ; SI R5=2
+		MOVEQ r1, #DUREE_MEDIUM ; ON MET LA DUREE2 QUI CORRESPOND A LA VITESSE DE ROTATION
+		CMP R5, #3  ; SI R5=3
+		MOVEQ r1, #DUREE_HARD ; ON MET LA DUREE3 QUI CORRESPOND A LA VITESSE DE ROTATION
+		B led_off 
+		
+delay2
+		CMP R5, #1  ; SI R5=1
+		MOVEQ r1, #DUREE_EASY ; C'EST LA VITESSE LA PLUS BASSE DONC ON ADAPTE LA DURÉE AVEC VITESSE
+		CMP R5, #2  ; SI R5=2
+		MOVEQ r1, #DUREE_MEDIUM ; ON MET LA DUREE2 QUI CORRESPOND A LA VITESSE DE ROTATION
+		CMP R5, #3  ; SI R5=3
+		MOVEQ r1, #DUREE_HARD ; ON MET LA DUREE3 QUI CORRESPOND A LA VITESSE DE ROTATION
+		B led_on 
+		
+;;;;;;;;;;;;;		CONDITIONS		;;;;;;;;;;;;;
+
+
+conditions
+		ldr r10,[r7]
+		CMP r10,#0x00 ; switch // CHANGEMENT DE VITESSE
+        BEQ vitesse
+		
+		ldr r10,[r8]
+		CMP r10,#0x01 ; collision gauche // BUMPER GAUCHE
+        BEQ gauche ; rotation gauche
+		
+		ldr r10,[r8]
+		CMP r10,#0x02 ; collision droite // BUMPER DROITE
+        BEQ droite ; rotation droite
+		
+		ldr r10,[r8]
+		CMP r10,#0x03 ; pas de collision
+        BEQ avance ; Avance tout droit 
 		BX	LR
 
-MOTEUR_DROIT_OFF 
-		ldr	r6,	=PWMENABLE
-		ldr r0,	[r6]
-		and	r0,	#0x0E	;bit 0 à 0
-		str	r0,	[r6]
-		BX	LR
+;;;;;;;;;;;;; 	Boucle d'attente ;;;;;;;;;;;;;;;;;
+;	- s'occupe du temps de la rotation	90°
+; 	- du clignottement des LEDs
+WAIT	MOV R12	,#3
+		
+		
+clignotte
+        str r2, [r9]    						;; Eteint LED car r2 = 0x00      
+        B delay1						;; pour la duree de la boucle d'attente1 (wait1)
 
-MOTEUR_GAUCHE_ON
-		ldr	r6,	=PWMENABLE
-		ldr	r0, [r6]
-		orr	r0,	#0x04	;bit 2 à 1
-		str	r0,	[r6]
-		BX	LR
+led_off	ldr r10,[r8]  
+		CMP r10,#0x00 ; les deux bumpers actionné 
+        BEQ gameover ; arret du jeu
+		subs r1, #1
+        bne led_off
 
-MOTEUR_GAUCHE_OFF
-		ldr	r6,	=PWMENABLE
-		ldr	r0,	[r6]
-		and	r0,	#0x0B	;bit 2 à 0
-		str	r0,	[r6]
-		BX	LR
+        str r11, [r9]  							;; Allume LED1 ou 2 ou les 2 portF broche 4&5 : 00110000 (contenu de r11)
+        B delay2						;; pour la duree de la boucle d'attente2 (wait2)
 
-MOTEUR_DROIT_ARRIERE
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_D+(GPIO_1<<2)) 
-		mov	r0, #0
-		str	r0,[r6]
-		BX	LR
+led_on	ldr r10,[r8]  
+		CMP r10,#0x00 ; les deux bumpers actionné 
+        BEQ gameover ; arret du jeu
+		subs r1, #1
+		bne led_on
+		
+		SUBS R12, R12, #1 ; equivalent i = i-1 
+		BNE clignotte ; la boucle continue tant que i>0, donc elle va se repeter trois fois
+        BX LR  ; pour WAIT ça revient ou ça été appelé
 
-MOTEUR_DROIT_AVANT
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_D+(GPIO_1<<2)) 
-		mov	r0, #2
-		str	r0,[r6]
-		BX	LR
 
-MOTEUR_GAUCHE_ARRIERE
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_H+(GPIO_1<<2)) 
-		mov	r0, #2 ; contraire du moteur Droit
-		str	r0,[r6]
-		BX	LR		
+;;;;;;;;;;;			GAME OVER		;;;;;;;;;;;;;;
+; cette section est executé si les deux bumpers sont actionnés 
+gameover BL MOTEUR_GAUCHE_OFF
+		 BL MOTEUR_DROIT_OFF
+		 mov r11, #BROCHE4_5 ; Je fais clignoter les 2 leds pour annoncer la fin du programme 
+		 BL WAIT ; on clignotte les 2 LEDs pour annoncer la fin du jeu
+		 str r2, [r9]
+		 NOP
+         END
 
-MOTEUR_GAUCHE_AVANT
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_H+(GPIO_1<<2)) 
-		mov	r0, #0
-		str	r0,[r6]
-		BX	LR		
+			
 
-MOTEUR_DROIT_INVERSE
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_D+(GPIO_1<<2)) 
-		ldr	r1, [r6]
-		EOR	r0, r1, #GPIO_1
-		str	r0,[r6]
-		BX	LR
+			
 
-MOTEUR_GAUCHE_INVERSE
-		;Inverse Direction (GPIO_D1)
-		ldr	r6, =(GPIODATA_H+(GPIO_1<<2)) 
-		ldr	r1, [r6]
-		EOR	r0, r1, #GPIO_1
-		str	r0,[r6]
-		BX	LR
-
-		END
+		
