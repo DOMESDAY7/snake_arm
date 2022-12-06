@@ -1,4 +1,4 @@
-# SNAKE ARM
+# SNAKE ARM🐍
 Dans le cadre de la matière d'__architecture__, nous devions réaliser un projet incluant le langage assembleur afin d’animer un « eval bot ».
 Le temps de réalisation de ce projet était réparti sur les séances de travaux pratiques et animer par des intervenants.
 Le projet réalisé doit contenir une interaction avec les bumpers, les leds, les switchs et les moteurs.
